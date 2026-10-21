@@ -1,0 +1,533 @@
+# Changelog
+
+All notable changes to Carrom Circuit are recorded here.
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
+and the project uses [semantic versioning](https://semver.org/).
+
+## [Unreleased]
+
+### Changed
+- **The Android SDK levels are pinned explicitly** in
+  `android/app/build.gradle.kts`: `compileSdk = 36`, `minSdk = 24`,
+  `targetSdk = 36`. They were `flutter.compileSdkVersion` and friends, which
+  resolve from whichever Flutter SDK is installed — so two machines could build
+  the project against two different Android SDKs without either saying so. The
+  pinned values are what the toolchain already resolved to, so the shipped APK
+  is unchanged.
+- **Internal development references removed from the shipped package.** The
+  phase numbering and working-rule references this project uses internally are
+  gone from `lib/`, `test/`, `CHANGELOG.md` and the generated `SPEC.md`. Several
+  were also stale: `ads_service.dart` still said that nothing in the app shows
+  an ad, and four files still promised that real artwork or bundled fonts would
+  arrive in a later release.
+- The script that generated the placeholder sound effects no longer ships. The
+  ten synthesised sounds are already in `assets/audio/`; replace them by
+  dropping your own files in under the same names.
+- The packaging script refuses to build an archive whose text carries an
+  internal reference, or names a path the archive does not contain. Both are
+  asked of every member of the zip rather than of one file.
+
+### Added
+- An **AI disclosure** section in the item description: development was
+  AI-assisted, and the app itself ships no AI or machine-learning features and
+  makes no calls to any AI service.
+
+- **Every sentence the game shows is now in `lib/l10n/app_en.arb`** — 208 keys,
+  of which 190 came out of the interface in this change. Screens read them
+  through `context.l10n`; the board keeps its `GameStrings` interface, because
+  its message line and result panel are built by pure functions with no widget
+  tree under them.
+- **The English labels have been removed from `lib/core/`.** `Difficulty`,
+  `GameMode`, `Opponent` and `RobotCountry` no longer carry a display name,
+  `PrizeTable` no longer carries a `name`, and `EquipmentItem` no longer
+  carries a `name` or a `description`. Core keeps the identity — an enum value,
+  a table number, an item id — and `lib/shared/utils/core_labels.dart` maps it
+  to an ARB key. **A buyer adding or renaming a shop item or a prize table now
+  edits the ARB rather than the Dart**, which the buyer documentation covers.
+- `formatWait` takes an `AppLocalizations` and the rounding moved to
+  `waitParts`, because `3h 12m` is two English abbreviations.
+
+- **The game is easier to score in.** The pocket radius went 22.5 to 30 and the
+  striker 20.5 to 26, both deliberately larger than a real board's, after
+  players were reported to be uninstalling because scoring was too hard. A
+  perfectly aimed shot used to drop 46.7% of the time and now drops 66.7%.
+  Widening the striker is what stops the enlarged pocket swallowing it, which
+  it did about four times as often at the old size.
+
+### Added
+- The aim guide now draws the path of the **struck coin** as well as marking
+  which coin the shot would hit, which is the half that makes a cut shot
+  aimable. Covered by the same `GameSettings.aimGuideOn` switch.
+- Project scaffold: application ID `com.yourbrand.carromcircuit`, portrait lock on
+  Android, iOS and in `main.dart`.
+- Placeholder launcher icons for Android, iOS and web, with a dependency-free
+  generator at `tool/generate_placeholder_icons.py`.
+- Buyer documentation in `docs/`, covering requirements, installation,
+  rebranding, gameplay configuration, AdMob setup, release builds and support.
+- Dependencies: flame 1.38.2, flutter_riverpod 3.3.2, shared_preferences 2.5.5,
+  flame_audio 2.12.2, google_mobile_ads 9.1.0.
+- Project folder structure for the physics, rules, AI, economy, game, feature,
+  service and shared layers.
+- Strict static analysis: strict casts, inference and raw types, plus ~35 lints
+  beyond the Flutter defaults.
+- `test/core_purity_test.dart`, which fails if `lib/core/` gains a Flutter,
+  Flame or `dart:ui` import.
+- Wood-and-gold theme, named routing, and the Home, Mode Select, Prize Tables,
+  Shop, Settings and Daily Reward screens.
+- Reusable `WoodScaffold`, `CarromButton` and `ComingSoonPanel` widgets.
+- AdMob test application IDs in the Android manifest and iOS Info.plist.
+- iOS deployment target set to 13.0 in the Podfile.
+
+### Fixed
+- App crashed on launch with `Missing application ID` once `google_mobile_ads`
+  was added: the SDK's start-up `ContentProvider` requires the AdMob
+  application ID in the manifest.
+- Home screen buttons overflowed by 6.4 px when two sat side by side.
+
+- Immutable `Wallet` model with credit, debit, penalty and low-balance rules,
+  starting every new player on 1,000 coins.
+- `StorageService`, a `shared_preferences` wrapper storing one JSON blob per
+  feature, opened before the first frame.
+- Riverpod wallet provider that restores the balance on launch and persists
+  every change.
+- Coin badge on the home screen, with thousands separators.
+- Physics core: immutable `Vector2D`, mutable `CircleBody`, and a `PhysicsWorld`
+  that advances on a fixed 1/120 s timestep with adaptive sub-stepping, so the
+  same shot always produces the same result regardless of frame rate.
+- Tuned physics constants in `lib/game/config/physics_config.dart`.
+- Board geometry with corner pockets, and board dimensions in
+  `lib/game/config/board_config.dart`.
+- Mass-weighted circle collisions with restitution and overlap separation,
+  cushion bounces with open corners, linear rolling friction and rest
+  detection.
+- Collision events logged per shot, carrying impact speed, for foul detection
+  and sound.
+- Pocket capture with rattle-out: a body reaching a pocket below the capture
+  speed drops in, a faster one bounces off the rim and stays in play. Pocket
+  events are logged per shot for scoring.
+- `PhysicsWorld.simulateUntilRest`, the headless entry point the robot's shot
+  search runs on, returning step count and whether the shot settled.
+- A mutation-testing harness that checks the test suite
+  would actually catch a break in the physics engine.
+- Tests covering that the world uses each configured physics constant, closing
+  three gaps the mutation harness found.
+- Canvas-drawn board: walnut frame with grain and a recessed bevel, maple
+  surface, four corner pockets, baselines with end circles, centre circles and
+  diagonal arrows. Drawn entirely in board units, so it fits any screen.
+- A game screen hosting the Flame game, reachable from mode select.
+- Opening arrangement on a hexagonal lattice: queen centred, nine white and
+  nine black coins packed tight around her, with the striker on the baseline.
+- Coin and striker components that draw directly from the physics world.
+- Striker placement: a slide bar under the board moves the striker along its
+  baseline, and the striker turns red where it would overlap a coin.
+- `BaselinePlacement` in `lib/core/rules/`, the shared rules for where a
+  striker may legally sit.
+- Pull-to-aim: drag back from the striker to aim, with a dashed aim line that
+  grows and reddens with power, a power meter beside the board, and a cancel
+  gesture for a pull too short to mean a shot.
+- The striker returns to its baseline once the board stops moving.
+- `PhysicsConfig.shotSpeed`, the single mapping from pull-back power to striker
+  speed, with `minStrikerSpeed` as its floor.
+- `test/physics/shot_feel_test.dart`, which pins the playability decisions
+  behind the tuned constants: no dead band in the power meter, a watchable
+  break, and hard shots still rattling out of pockets.
+- `lib/game/input/aim_line.dart`, the aim line's length: a floor under it so
+  the guide never vanishes at low power, and a clip at the cushion it points
+  at so it never paints across the frame.
+- `ShotResult` in `lib/core/rules/`: what one shot did, read from the physics
+  event logs. What fell and in what order, whether the striker went down, and
+  which coin the striker touched first. Every rule in Section 7 is written
+  against this one object, so rules can be tested without a physics world and
+  the robot scores a shot with the same code that scores a real one.
+- The game builds a `ShotResult` the moment the board stops moving, readable
+  as `CarromGame.lastShot` until the next shot is fired.
+- The Tournament rules engine in `lib/core/rules/tournament_rules.dart`, with
+  `GameState`, `RulesConfig` and the `RulesEngine` interface beside it. Covers
+  every rule in Section 7.2: keeping the table, earning and covering the queen,
+  the striker foul and the coin debt it can leave, the optional air-shot foul,
+  the turn timer, and the win condition. 31 tests.
+- The Scramble rules engine in `lib/core/rules/scramble_rules.dart`: a points
+  race where nobody owns a colour, any coin scores for whoever sank it (white
+  20, black 10, the queen 50 once covered), the striker costs 10 points and the
+  turn, and the game ends when the board is clear. A level score is a draw.
+  Covers every rule in Section 7.3. 51 tests.
+- `GameState` gained per-seat scores and a `gameOver` flag, so a game can be
+  over with nobody credited &mdash; which a Scramble draw is, and which cannot
+  be read off `winner` alone.
+- Turn management: `Match` in `lib/core/rules/match.dart` owns the mode, the
+  engine, the game state and the clock, and is the single authority on whose
+  turn it is. The striker now moves to the baseline of whoever is at the table.
+- `TurnTimer`: the 20-second turn clock of Section 7.4, driven by the game loop
+  rather than a wall clock. Held while a shot plays out, refreshed every stroke,
+  with a configurable final warning.
+- `CentrePlacement`: where a coin goes when a rule sends it back to the centre,
+  and the code that puts it there. Rings outwards from the centre spot to the
+  nearest free room that is on the surface and off the pocket mouths.
+- HUD: a player panel at each end of the screen with a Canvas-drawn avatar, the
+  turn clock as a ring around it, the score, the queen's status and a coin tray.
+  Tournament gives each seat a tray of its own colour; Scramble shows one shared
+  tray of what has come off the board.
+- Tournament and Scramble are now playable from the mode-select screen, which
+  passes the chosen mode to the board as a route argument.
+- Pass & Play end to end. In a two-player game the board turns half a turn for
+  the second seat and the player panels swap with it, so whoever is holding the
+  phone shoots from the bottom of the screen; a brief "Player 2's turn" notice
+  fades over the board as the table passes, with the clock still running.
+- `MatchSetup` and `Opponent`: the rules and who is playing them, carried
+  together as the board's route argument. The mode-select Pass & Play card asks
+  which rules first.
+- Settings: `GameSettings`, `settingsProvider` and a real settings screen, with
+  a "Turn the board round" switch that persists.
+- `barFraction` in `lib/game/input/bar_mapping.dart`, which mirrors the slide
+  bar when the board is turned so the knob always follows the thumb.
+- The robot's shot search, in `lib/core/ai/`: candidate generation, headless
+  simulation on a background isolate and a shot evaluator for both modes. Shots
+  are *aimed* &mdash; ghost-ball geometry at each coin towards each pocket, plus
+  rebounds off a named cushion &mdash; then pruned, simulated on a copy of the
+  board with the player's own physics, put through the player's own rules engine
+  and ranked. Deterministic end to end: `ShotSearch.inBackground` returns the
+  same ranking as a local run, which a test asserts.
+- `CandidatePlan` and `AiWeights`: how wide the robot looks, and what it thinks a
+  shot is worth. The Section 8 scoring table in one place.
+- Robot difficulty: Easy, Medium and Hard, each a width of search, a slice of the
+  ranking to pick from and an amount of aiming noise, exactly as Section 8 sets
+  them out. `RobotPlayer` takes an injected seed and never makes one, so a
+  stroke is a pure function of the seed, the stroke number and the search
+  result — the same seed replays the same game.
+- Prize-table settlement: the entry is taken when a match starts, a win pays the
+  prize and opens the table above, a loss pays nothing, and a draw returns the
+  entry. Quitting mid-match is a loss and the pause menu warns before it. A
+  rematch pays a second entry.
+- `Wallet` remembers the most it has ever held, so a table opened by a balance
+  stays open once that balance is spent — the ladder only ever moves up.
+- Prize Tables: the twelve-table ladder of Section 9.2 as a snapping carousel,
+  opening on the highest table the player may sit at. A table opens on a win at
+  the one below or on holding three times its entry, and a card says which of
+  those is missing — or, separately, that the entry is simply out of reach.
+- Matchmaking: "Finding an opponent…", a slot-machine roll through 66 house
+  robots from five countries, then the opponent's name, flag and face. One seed
+  decides both who shows up and every shot they will mis-hit.
+- `LadderProgress` and `ladderProvider`, which remember the tables a player has
+  won, stored under `StorageKeys.prizeTables`.
+- Solo Match: a real game against the robot. The mode-select card asks which
+  rules and then how strong an opponent, and the board deals with the player on
+  the near baseline and the robot on the far one.
+- The robot takes its turn where the player can see it: it slides the striker
+  into place and pulls back to the power it chose, drawn by the same code that
+  draws the player's own shot. Its search and its thinking pause run together,
+  so a slow search shortens the pause instead of adding to it.
+- The robot is never timed. Its avatar shows a sweep while it is working out
+  what to play, in place of the turn clock.
+- Tests that a Hard robot never pockets the striker when a safe shot exists, on
+  four boards that are each asserted to offer the foul first; that a wider tier
+  really does more work, measured in physics steps; that every tier still
+  simulates more than 200 shots a second; and that a whole game between two
+  robots ends, with the stronger one winning it.
+- Pause menu: resume, start again, leave. Pausing stops the Flame engine, which
+  stops the turn clock with it. The pause button replaces the back arrow and the
+  system back gesture opens the menu too, so leaving a game is always
+  deliberate.
+- Victory and defeat panel, with the Section 7.2 board points in Tournament and
+  the final scores in Scramble, plus rematch without leaving the screen.
+- Daily reward: a seven-day streak paying 100, 150, 200, 300, 400, 500 and
+  1,000 coins, shown as a calendar of what has been collected and what is
+  still to come. A day is a calendar date rather than a twenty-four hour
+  timer, a missed day puts the run back to day one and says so, and finishing
+  the run starts it again.
+- Out-of-coins refill: 500 coins free whenever the balance is under 50, once
+  every four hours, with the rule on screen before a player needs it.
+- `clockProvider`, so everything outside `lib/core/` reads the time through an
+  injected clock and a test can sit on any date it likes.
+- The home screen marks the daily reward with a dot when one is waiting, and
+  the coin badge on the home and prize-table screens leads to where coins
+  come from.
+- Equipment shop: fifteen cosmetic items across strikers, boards and coin sets,
+  priced from free to 20,000 coins, with the cheapest of each free from the
+  start. Buying asks for confirmation, names what it will leave in the wallet,
+  and equips what it bought; the item it replaced stays owned. Purchases and the
+  choice in each category persist, and a saved choice that cannot be honoured —
+  an item since removed, one filed under the wrong category, or one never paid
+  for — falls back to the free item rather than failing.
+- Equipment is drawn on the board. What a player has equipped colours the
+  frame, the playing surface and its markings, the pockets, the striker, the
+  nineteen coins and the pocketed-coin trays beside each seat. Palettes live in
+  `lib/game/skins/`, one per category, and are handed to the Canvas components
+  rather than imported by them — the seam a light theme will reuse.
+- Shop cards and the purchase sheet show the item itself rather than a category
+  icon, drawn from the same palettes and the same painting code as the board.
+- `kStrikerPerkEnabled` in `lib/game/config/input_config.dart`, the toggle for
+  the one optional non-cosmetic perk the design allows: a longer aim guide on
+  premium strikers. It ships **off**, so the shop sells looks and nothing else.
+  Each striker still carries its own `aimGuideScale`, rising from 1.0 to 1.3, so
+  turning the constant on gives a working ladder with no other edit.
+- AdMob initialisation in `main.dart`, started before the first frame and
+  deliberately not awaited, so a slow connection cannot hold up the splash
+  screen. Every ad request awaits the same start-up future internally.
+- `lib/services/ad_ids.dart`: the interstitial and rewarded unit IDs for both
+  platforms, and the `kReleaseAds` flag that switches Google's test units for
+  your own. A test refuses the combination of a release build and an unfilled
+  live ID.
+- `lib/services/ads_service.dart`: an `AdSlot` per ad unit, keeping one ad
+  loaded, retrying a failed request three times with a doubling backoff, and
+  fetching the next the moment one is spent. A slot with nothing loaded reports
+  a miss rather than throwing or waiting.
+- `lib/services/admob_loader.dart`, the only file in the project that imports
+  `google_mobile_ads`. Everything above it works through a small
+  `FullScreenAd` interface, which is what lets the loading rules be tested with
+  no network, no AdMob account and no platform channel.
+- Twelve mutations covering the ad-loading rules, and `test/services` added to
+  the mutation harness's suite.
+- `lib/core/ads/interstitial_cap.dart`: Section 10's two interstitial limits,
+  held together — two finished robot matches between ads, and never two ads
+  less than three minutes apart. Stored under the `interstitial` key, so
+  closing the app is neither a way to see an ad sooner nor a way to avoid one.
+- `lib/features/game/match_ads.dart`: the one place in the project that shows
+  an interstitial. It fetches an ad while the match is being played, counts a
+  match that reaches a result, and shows an ad at a break — leaving a finished
+  match, or asking for a rematch. Never during play, never after a local
+  two-player game, and never after a match the player abandoned part-way.
+- Seventeen more mutations covering the interstitial caps, and `test/ads`
+  added to the mutation harness's suite.
+- `lib/core/ads/rewarded_allowance.dart`: Section 9.4's rewarded video, worth
+  250 coins with five a day. A calendar day, counted by the same function the
+  daily reward streak uses.
+- A confirmation before every video — "Watch a short video for 250 coins?" —
+  and coins credited inside the SDK's reward callback and nowhere else, so a
+  video closed half way through pays nothing and costs none of the five.
+- The out-of-coins refill can now be bought with a video instead of waiting out
+  the four hours, which completes Section 9.4. The video buys the wait, not a
+  second helping: the cooldown restarts as it does for a free refill.
+- `CoinPanel`, shared by the refill and the video offers so that two panels on
+  the same screen cannot drift apart.
+- Twenty-one more mutations covering the video allowance, who may be paid for
+  watching one, and the two panel conditions.
+- Google's User Messaging Platform consent flow in
+  `lib/services/consent_service.dart`, which ships inside `google_mobile_ads`
+  and needs no extra dependency. Consent is gathered the first time an ad is
+  requested, and **no ad is requested until the SDK says consent allows it** —
+  a parameter of `AdSlot` rather than a detail of the plugin wrapper, so the
+  rule is covered by tests.
+- An **Advertising choices** row in settings, shown only where a region
+  requires a way back to the consent form.
+- A panel in settings naming the future ad-free purchase. A sentence rather
+  than a disabled switch, which closes Section 10's last item without shipping
+  a control that does nothing.
+- `kConsentTestDeviceIds` and `kConsentDebugGeography`, for seeing the European
+  consent form on a device that is not in Europe.
+- Five more mutations covering the consent gate and the settings row.
+
+- Sound: the ten effects of Section 11, played through `flame_audio`. An
+  `AudioService` decides whether and how loudly, `BoardSounds` reads the
+  physics event logs and turns them into knocks, and one line reaches the
+  plugin — so what sounds when is covered by tests rather than by listening.
+- Knocks are scaled by impact speed, and at most three sound in one frame: the
+  opening break lands a dozen contacts in a step, and a dozen clicks at once is
+  static rather than a break. Constants in `lib/game/config/audio_config.dart`.
+- A **Sound** switch in settings, read on every sound rather than cached.
+- The ten sound effects, synthesised rather than recorded and deterministic so
+  regenerating never churns the repository. These are
+  placeholders in the same sense as the launcher icons; replace the files in
+  the final art lands, and nothing in the Dart changes.
+- Twenty-four mutations covering which sound plays, how loud, and how often.
+
+- Haptics: light on a knock, medium on a pocket, heavy on a foul, through
+  Flutter's own `HapticFeedback` and so without a new dependency. One buzz per
+  frame at most, and only for a knock well above the threshold for being heard
+  — an ear takes a dozen quiet clicks in a break, a hand does not.
+- A **Vibration** switch and a **Time for each shot** picker in settings. Three
+  lengths rather than a slider: 15, Section 7.4's 20, and 30. A new length
+  applies to the next game, not the one on screen.
+- `BoardSounds` renamed `BoardFeedback`: sound and haptics are read from one
+  pass over the physics event logs rather than by two objects counting
+  separately.
+- Twenty-nine mutations covering what is felt, how hard and how often.
+- A pocketed coin shrinks and fades into the hole instead of vanishing on the
+  frame it was captured.
+- Score popups in Scramble: the points a shot was worth, rising out of the
+  pocket the last coin went into. Read from the score the rules arrived at
+  rather than from the coins pocketed — the queen pays nothing until she is
+  covered. Tournament keeps no score and pops nothing.
+- A coin fly-to-wallet effect when coins are collected, drawn in the overlay so
+  no screen has to make room for it.
+- A branded splash screen on both platforms, replacing the stock white one —
+  and the window behind Flutter with it, which shows through for the frame
+  between the splash going and the first frame painting.
+- The Section 7.1 aim guide, with a settings switch: a ghost striker drawn
+  where the striker would first touch a coin, and a dot where the two would
+  meet. On by default, and read once when the board is built. The geometry is
+  `firstContact` in `lib/game/input/aim_contact.dart`, an exact ray cast rather
+  than a simulation — a test fires the shot it predicts and asserts the engine
+  hits the coin it marked. The guide sees as far as the aim line reaches, which
+  is what makes the optional premium-striker perk a guide perk; that perk still
+  ships switched off. Drawn as a light ink over a dark halo, because a
+  near-white mark is nearly invisible on a pale board — 0.019 of relative
+  luminance against the lit end of Marble, and 0.199 against Maple. A test
+  beside the board-marking contrast test holds every board to 0.25.
+
+### Fixed
+- The board and both HUD panels jumped whenever the "striker is touching a
+  coin" warning appeared or went. The warning was being added to and removed
+  from the layout column, and the board sits in an `Expanded`, so it resized
+  every time. The line is now always reserved.
+- The placeholder sounds were too sharp. The generator gained a two-pole
+  low-pass, slower attacks and a lower peak, each cutoff calibrated so the
+  sound keeps about half the energy it had above 4 kHz.
+
+### Changed
+- `game_screen.dart` split along two seams, 367 lines to 295: `MatchStakes`
+  (the entry, the settlement, the forfeit, the rematch and the ad at the break)
+  and `HandoverNotice` (whose turn it is now, and its own fade). Neither knows
+  about the board or the navigator. No behaviour change, and every existing
+  widget test passed untouched.
+- Two redundant settle-once guards removed from the new `MatchStakes`:
+  `PrizePurse` already owns that rule, which turned out to have had no mutation
+  covering it until now.
+- The mutation harness runs only the tests that can catch each mutation, which
+  takes a full sweep of 243 mutations from **1h52m to 19m46s**. A survivor is
+  re-run against the whole suite before it is called a gap, so too narrow a
+  mapping reports itself rather than hiding a rule nobody tests.
+- A mutation that fails to compile is reported as `BROKEN` rather than
+  `caught`: the test command fails either way, and the old reading credited a
+  syntax error with defending a rule.
+
+### Changed
+- `CarromArenaApp` renamed `CarromCircuitApp`, the last identifier left over
+  from the 2026-10-05 rename.
+- The whole of `lib/` and `test/` formatted with `dart format`, which had never
+  been run over the project. `dart format lib test` now reports nothing changed,
+  and it is part of the verification checklist.
+- The mutation harness gained `--check`, which verifies that every mutation's
+  pattern still matches its source; a full run performs the same check first and
+  refuses to start when a pattern has gone stale.
+
+### Changed
+- Renamed throughout to stand clear of the names already shipping in this
+  genre. The app is **Carrom Circuit** (`com.yourbrand.carromcircuit`); the
+  modes are **Tournament**, **Scramble**, **Pass & Play** and **Solo Match**;
+  the coin ladder is **Prize Tables**, and all twelve tables and the shop
+  catalogue were renamed with it. `Carrom Arena` was already a published app,
+  and `Freestyle` is a mode name in a game with over 50 million installs.
+- Contacts closing slower than the rest threshold are resolved but no longer
+  reported as collision events, so a settled board does not fill the event log.
+- Shot power now interpolates between `minStrikerSpeed` (470 units/s) and
+  `maxStrikerSpeed` rather than scaling up from zero, and `maxStrikerSpeed`
+  dropped from 2400 to 1800 units/s. Travel grows with the square of speed, so
+  the old mapping left the bottom fifth of the power meter unable to carry the
+  striker as far as the coins, while the top half was indistinguishable
+  ricochet. Every part of the pull now changes the shot.
+- The aim line no longer scales up from zero. It runs from 300 units at no
+  power to 760 at full power and stops at the cushion, where before it was
+  `300 x power` — invisible for a delicate shot and still short of the board
+  centre at full power.
+- `maxStrikerSpeed` raised from 1800 to 2200 units/s after the shots played
+  weak on a device.
+- Android `ndkVersion` pinned to `29.0.13599879`.
+- The physics engine now leaves alone any pair of bodies that have both stayed
+  put since it last looked, rather than testing all 190 pairs on a full board
+  on every sub-step while only about 2.4 of the twenty bodies were moving. The
+  robot's shot search is 2.2–3.0× faster as a result and plays exactly the same
+  shot: proved byte-identical across five shots off the opening break, every
+  final position to ten decimal places and every collision event. This is the
+  Hard-robot search cost that was over Section 8's thinking pause on a phone.
+
+### Added
+- Android adaptive launcher icon, which is what every launcher since Android 8
+  actually draws. Before this there were only the square legacy PNGs, so the
+  system put the board inside a badge of its own choosing — a dark wooden board
+  in a white circle. A walnut background layer and the board as the foreground,
+  plus a monochrome silhouette for Android 13's themed icons.
+- `test/app/launcher_icon_test.dart`, which holds the adaptive layers to the
+  properties nothing on a device would report: the art stays inside the 66dp
+  the launcher's mask cannot crop, without being needlessly smaller than it,
+  the background is opaque to its edge, and the themed layer is a silhouette
+  rather than a copy of the picture. It checks a buyer's own replacement art
+  just as well as the generated set.
+- `test/app/package_id_test.dart`, which checks that all five places the
+  application ID is written out agree. Kotlin complains when the package and
+  its folder differ; Gradle and Xcode never read each other at all.
+
+### Changed
+- Application ID is now `com.carromcircuit`, replacing the original placeholder
+  `com.yourbrand.carromcircuit` in the Gradle namespace and applicationId, the
+  iOS bundle identifier, `MainActivity.kt` and the folder it sits in.
+- `tool/generate_placeholder_icons.py` renamed `tool/generate_app_icons.py`:
+  the board-motif art it draws is the final icon rather than a stand-in for
+  one. The 25 icons it already produced are byte-identical after the rewrite.
+- Buyer documentation now describes both icon sets, the adaptive-icon safe
+  zone that a buyer's own artwork has to respect, and the two tests that check
+  a replacement.
+
+### Added
+- `test/audio/sound_assets_test.dart`, holding the ten `GameSound` names
+  against the ten files on disk in both directions, checking each is a
+  non-empty RIFF/WAVE, and checking `pubspec.yaml` really declares the folder.
+  A name and a file that disagree are silent at runtime by design, so nothing
+  reported this before.
+
+### Changed
+- No fonts are bundled: the app ships with the platform's default typeface.
+  This amends the Section 3 table, which had asked for bundled font files since
+  the project began. `assets/fonts/` stays, empty, for a buyer who wants their
+  own.
+- The Canvas-drawn board, coins, striker, trays and the sixteen robot avatars
+  are now described as the shipped art rather than as placeholders awaiting
+  replacement. No artwork was commissioned, and the drawn skins were never
+  really provisional — a board skin *is* a palette, which is what lets the shop
+  swatch and the board share one painter.
+- The ten sound effects keep the word placeholder, because they are still
+  synthesised rather than recorded, but no longer claim that a later release
+  replaces
+  them.
+
+### Added
+- Release signing. `android/app/build.gradle.kts` now reads `key.properties`
+  and signs release builds with a real upload key; before this it carried a
+  TODO and signed releases with the debug keys, which Play refuses.
+- `android/key.properties.example`, documenting the four fields a buyer fills
+  in.
+- `test/app/release_signing_test.dart`: the fields Gradle reads match the
+  fields the template documents, git tracks no keystore or `key.properties`,
+  no password is hardcoded into the build file, and the clean-clone fallback
+  is intact.
+
+### Changed
+- The root `.gitignore` now covers `key.properties`, `*.jks` and `*.keystore`.
+  Flutter's own patterns live in `android/.gitignore` and only govern that
+  directory.
+- A release build with no `key.properties` still succeeds, signing with the
+  debug keys and printing a warning, so the project builds from a clean clone.
+- The Android release documentation was rewritten. It had described creating
+  `key.properties` from the very first release, while nothing read it.
+
+### Added
+- `store/privacy-policy.html`: the published privacy policy. One self-contained
+  file that fetches no stylesheet, font or script, so it renders anywhere.
+- `store/listing.md`: app name, short and full descriptions, the graphics
+  checklist, content rating notes and the Play Data safety answers.
+- `store/screenshots/`: six screens captured from the signed release build.
+- The Play Store feature graphic and its generator. The board
+  is painted by the launcher icon's own routine and the wordmark is matted out
+  of a real screenshot, so neither can drift from the app.
+- `test/app/store_listing_test.dart`: the three Play character limits, the
+  lengths the listing claims for itself, that the policy pulls in nothing
+  external, that it is right about in-app purchases, and that the settings row
+  it tells players to open exists in the app under that exact name.
+- A buyer-facing section on writing their own privacy policy, including the
+  permissions the ads SDK contributes and how to confirm them for their build.
+
+### Changed
+- `store/` is excluded from the CodeCanyon archive, like `designs/`. It is the
+  owner's store material and the policy carries the owner's contact address.
+
+## [1.0.0]
+
+First public release. Note that the version *name* has stayed `1.0.0` across
+three Android version codes, because Play requires a strictly increasing code
+per upload while nothing in the first two bumps changed what a player sees:
+
+- `+1` submitted 2026-10-12, carrying Google's **test** ad unit IDs.
+- `+2` the first build with live ad IDs.
+- `+3` the first build carrying the difficulty changes above.
+
+**The rest of this file is still gathered under `[Unreleased]`** rather than
+split into released versions, which is a tidying job this release did not do.

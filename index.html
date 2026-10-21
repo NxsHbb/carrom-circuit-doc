@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Buyer documentation for Carrom Circuit, a complete offline carrom board game for Flutter with a custom deterministic physics engine.">
 <title>Carrom Circuit — Documentation</title>
 <link rel="stylesheet" href="assets/doc-style.css">
 </head>
@@ -17,6 +18,7 @@
   <nav>
     <div class="group">Getting started</div>
     <a href="#introduction">Introduction</a>
+    <a href="#quick-start">Quick start</a>
     <a href="#requirements">Requirements</a>
     <a href="#installation">Installation</a>
     <a href="#running">Running the app</a>
@@ -87,6 +89,10 @@ there is no backend, no login and no server cost. Everything a player earns is s
   <li>Cosmetic equipment shop: strikers, boards and coin sets</li>
   <li>Google AdMob interstitial and rewarded video, frequency capped</li>
   <li>Sound effects, haptics, settings and a polished menu flow</li>
+  <li><strong>Thirteen languages, fully translated and included in the item</strong> &mdash; English,
+  Bangla, Arabic, Hindi, Russian, Turkish, German, Chinese, Amharic, French, Greek, Spanish and
+  Brazilian Portuguese, with right-to-left layout for Arabic. Nothing to buy and nobody to hire:
+  see <a href="#languages">Languages</a>.</li>
 </ul>
 
 <h3>What is not included</h3>
@@ -119,6 +125,60 @@ transferred.</p>
   <p>The robot opponent runs the same physics engine the player does, searching hundreds of candidate shots
   per turn in a background isolate. There is no scripted cheating, and no network call is ever made during
   a match.</p>
+</div>
+
+<h2 id="quick-start">Quick start</h2>
+
+<p>Six steps from the unzipped archive to a build you can upload to a store under your own name.
+Each step links to the section with the detail, but the list stands on its own &mdash; nothing else
+in the project has to be touched to publish the game as yours.</p>
+
+<ol class="steps">
+  <li><strong>Install it and run it.</strong> With the Flutter SDK on your machine, from the project
+    folder:
+    <pre><code>flutter pub get
+flutter run</code></pre>
+    The game builds and opens on any connected device or emulator, fully playable, with no account,
+    key or configuration of any kind. See <a href="#requirements">Requirements</a> and
+    <a href="#installation">Installation</a>.</li>
+
+  <li><strong>Rename the app.</strong> Three files carry the display name: <code>android:label</code>
+    in <code>android/app/src/main/AndroidManifest.xml</code>, <code>CFBundleDisplayName</code> in
+    <code>ios/Runner/Info.plist</code>, and the title and names in <code>web/index.html</code> and
+    <code>web/manifest.json</code>. See <a href="#rebranding">Rebranding</a>.</li>
+
+  <li><strong>Change the application ID.</strong> The project ships as
+    <code>com.carromcircuit</code>. In <code>android/app/build.gradle.kts</code> change both
+    <code>namespace</code> and <code>applicationId</code>, move
+    <code>android/app/src/main/kotlin/com/carromcircuit/MainActivity.kt</code> into a folder path
+    that matches your new ID, update its <code>package</code> line, and set the bundle identifier for
+    iOS in Xcode. <strong>Neither store lets you change this after the first upload</strong>, so
+    choose it before you publish rather than after.</li>
+
+  <li><strong>Replace the launcher icon.</strong> Either drop your own artwork over the generated
+    files, or edit the colours at the top of <code>tool/generate_app_icons.py</code> and re-run it:
+    <pre><code>python3 tool/generate_app_icons.py</code></pre>
+    It writes every Android, iOS and web size from one drawing, including the Android adaptive
+    layers and the Android 13 themed icon. See <a href="#rebranding">Rebranding</a>.</li>
+
+  <li><strong>Put in your own AdMob IDs.</strong> The item ships with Google's public test IDs, so
+    advertising works immediately and earns nobody anything. Replace the application ID in the
+    Android manifest and the iOS <code>Info.plist</code>, replace the unit IDs in
+    <code>lib/services/ad_ids.dart</code>, and set <code>kReleaseAds = true</code>. All of it is one
+    short file and two lines of XML. See <a href="#ads">AdMob setup</a>.</li>
+
+  <li><strong>Build a release.</strong> Create a signing key, fill in
+    <code>android/key.properties</code> from the supplied example, then:
+    <pre><code>flutter build appbundle --release</code></pre>
+    That is the file you upload to Google Play. See
+    <a href="#android-release">Android release build</a>, and
+    <a href="#store-checklist">Store checklist</a> for what else the store asks for.</li>
+</ol>
+
+<div class="note">
+  <p>Everything past those six steps is optional. The rules, the economy, the shop, the robot
+  opponent and all thirteen languages work exactly as shipped, with no configuration at all. The rest
+  of this document is there for when you want to change how something behaves.</p>
 </div>
 
 <h2 id="requirements">Requirements</h2>
@@ -176,6 +236,55 @@ flutter test</code></pre>
 <p>Both commands should finish with no issues reported. If they do not, see
 <a href="#troubleshooting">Troubleshooting</a>.</p>
 
+<h3>Keeping the dependencies up to date</h3>
+
+<p>The versions in <code>pubspec.yaml</code> are the ones this release was built and tested against
+together. They are not frozen, and an app you intend to maintain for years should not stay on them
+forever &mdash; but upgrade deliberately rather than all at once:</p>
+
+<ol class="steps">
+  <li><strong>See what has moved.</strong>
+    <pre><code>flutter pub outdated</code></pre>
+    The <em>Resolvable</em> column is what you can take without editing <code>pubspec.yaml</code>;
+    <em>Latest</em> is what exists, and reaching it may mean a major version with breaking changes.</li>
+
+  <li><strong>Take the safe ones first.</strong>
+    <pre><code>flutter pub upgrade</code></pre>
+    This stays inside the constraints already written in <code>pubspec.yaml</code>, so it picks up
+    patch and minor releases only. This is the upgrade worth doing routinely.</li>
+
+  <li><strong>Then the major ones, one at a time.</strong>
+    <pre><code>flutter pub upgrade --major-versions</code></pre>
+    Prefer editing one constraint by hand, re-running, and testing, over taking every major bump in a
+    single step &mdash; when something breaks you want to know which package did it. Read the
+    package's changelog on pub.dev first.</li>
+
+  <li><strong>Prove it still works</strong>, every time, before you commit:
+    <pre><code>flutter analyze
+flutter test</code></pre>
+    The test suite is the real safety net here: the physics, the rules engines, the AI and the economy
+    are covered by unit tests that do not need a device, so a dependency that changes behaviour tends
+    to show up as a failing test rather than as a bug a player finds.</li>
+</ol>
+
+<p>Three things specific to this project that are worth knowing before you upgrade:</p>
+<ul>
+  <li><strong><code>flutter_riverpod</code> is held at <code>^3.3.2</code> on purpose.</strong> Newer
+  releases have required a newer Dart SDK than the one this was built against. Upgrading Flutter
+  first, then Riverpod, is the order that works.</li>
+  <li><strong><code>intl</code> is declared as <code>any</code>, which is deliberate.</strong>
+  <code>flutter_localizations</code> pins it from the SDK to one exact version, and declaring a range
+  of our own would only produce a conflict the next time you upgrade Flutter.</li>
+  <li><strong>A major <code>google_mobile_ads</code> upgrade is rarely only a version bump.</strong> It
+  tends to come with a minimum Android SDK or iOS deployment target, and sometimes a manifest or
+  <code>Podfile</code> change. Read its changelog, then re-run the app on a real device and confirm an
+  ad still loads &mdash; an ads SDK that fails quietly looks exactly like an empty network.</li>
+</ul>
+
+<p>After any upgrade that touches iOS, re-run <code>cd ios &amp;&amp; pod install</code> and commit the
+updated <code>Podfile.lock</code> along with <code>pubspec.lock</code>, so your own builds stay
+reproducible.</p>
+
 <h2 id="running">Running the app</h2>
 
 <p>Connect a device or start an emulator, then:</p>
@@ -232,7 +341,41 @@ unit testable and lets the robot opponent run the exact same rules and physics t
 assets/   images, audio and fonts
 docs/     this documentation
 test/     unit tests for physics, rules, AI and economy
-tool/     helper scripts: icon and sound generators, mutation harness</code></pre>
+tool/     the launcher-icon generator</code></pre>
+
+<h3>Where the conventional Flutter folders are</h3>
+
+<p>This project groups code by <em>layer</em> rather than by widget type, because the game logic has to
+stay free of Flutter imports &mdash; that is what lets the robot opponent run the real rules and the real
+physics inside a background isolate, and what makes all of it unit testable. If you are looking for the
+folders a Flutter project more usually has:</p>
+
+<table>
+  <tr><th>Looking for</th><th>It is here</th></tr>
+  <tr><td>models / entities</td>
+      <td><code>lib/core/</code> &mdash; <code>rules/</code>, <code>economy/</code> and
+      <code>physics/</code> hold the plain-Dart value types</td></tr>
+  <tr><td>screens / pages</td>
+      <td><code>lib/features/</code>, one folder per screen</td></tr>
+  <tr><td>widgets</td>
+      <td><code>lib/shared/widgets/</code> for the reusable ones; a screen's own widgets sit beside it,
+      and the in-game overlays are in <code>lib/game/overlays/</code></td></tr>
+  <tr><td>providers / state management</td>
+      <td><code>lib/services/</code> &mdash; one Riverpod notifier per feature, beside the storage it
+      reads</td></tr>
+  <tr><td>utils / helpers</td>
+      <td><code>lib/shared/utils/</code></td></tr>
+  <tr><td>constants you are meant to tune</td>
+      <td><code>lib/game/config/</code></td></tr>
+</table>
+
+<p>State is managed with <a href="https://pub.dev/packages/flutter_riverpod">Riverpod</a>, so nothing is
+passed down through widget trees by hand. Lists and grids that can grow are built lazily: the avatar
+picker's forty-nine tiles use <code>GridView.builder</code>, the twelve prize tables use
+<code>PageView.builder</code>, and the mode list uses <code>ListView.separated</code>. The settings,
+shop and daily-reward pages use a plain <code>ListView</code>, which is what Flutter recommends for a
+short and fixed set of children &mdash; those pages have a handful each, and a builder there would cost
+more than it saves.</p>
 
 <h3>Code quality gates</h3>
 <p>The project analyses more strictly than the Flutter defaults: implicit downcasts, inference that falls back
@@ -758,6 +901,17 @@ back arrow &mdash; the Android back gesture opens the pause menu too. Pausing st
 stops the turn clock with it: the clock is only ever advanced from the game's <code>update</code>, so there is
 no second thing to remember to pause. The same is true when the player takes a call or switches apps, because
 Flame pauses the engine when the app is backgrounded, so nobody loses a turn to a notification.</p>
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/pause.png" alt="The pause panel over a Tournament board" loading="lazy">
+    <figcaption>The pause panel. The clock stops with the engine, so a paused game cannot lose a turn &mdash; and in a prize match this panel is also where the forfeit warning appears.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/img/result.png" alt="The result panel at the end of a Tournament game" loading="lazy">
+    <figcaption>The result panel. Board points are display only: one for each coin the loser left, plus three for the queen if the winner covered her.</figcaption>
+  </figure>
+</div>
+
 
 <p>The result panel shows as soon as the rules declare the game over. In Tournament it shows the board points
 of the spec &mdash; one per coin the loser left, plus three for the queen if the winner covered her, display
@@ -802,6 +956,17 @@ settings screen.</p>
 (<code>lib/features/profile/profile_screen.dart</code>) where a player types a name and taps a face. Both are
 optional: a player who never opens it is called <em>Player 1</em> and wears their own initials, which is
 exactly what the game showed before the screen existed.</p>
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/settings.png" alt="The settings screen, with the profile row at the top" loading="lazy">
+    <figcaption>Settings. The first row is the player's own name and face; everything below it is stored on the device and applies to the next game.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/img/profile.png" alt="The profile screen, with a name field above a grid of avatars" loading="lazy">
+    <figcaption>The profile screen. Forty-nine faces &mdash; the player's own initials, then forty-eight drawn ones &mdash; and a name that is saved as it is typed.</figcaption>
+  </figure>
+</div>
+
 
 <p>The model is <code>PlayerProfile</code> (<code>lib/core/profile/player_profile.dart</code>) — a name and an
 avatar index, stored under the <code>profile</code> key with the same JSON round trip as the wallet. Two
@@ -981,6 +1146,17 @@ refills. See the AdMob section for the video itself.</p>
 <code>lib/core/economy/robot_names.dart</code> &mdash; 66 robots across Bangladesh, India, Sri Lanka, Nepal and
 Pakistan. Edit the per-country name lists to suit your market; the avatar numbering is worked out from the
 list, so adding or removing names needs nothing else changed.</p>
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/prize-tables.png" alt="The prize table carousel showing the City Open table" loading="lazy">
+    <figcaption>The prize-table carousel. Each card carries its entry, its prize, the rules it is played under and the robot you will face.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/img/matchmaking.png" alt="The matchmaking screen revealing a robot opponent" loading="lazy">
+    <figcaption>Matchmaking. The name roll settles on one of the sixty-six house robots, with a country and an avatar fixed to that name &mdash; meet Milan twice and he is the same Milan.</figcaption>
+  </figure>
+</div>
+
 
 <p>A robot is a name, a country and one of sixteen faces. The face is fixed to the name rather than drawn at
 random, so a player who meets the same opponent twice meets the same one. Faces are a colour and an initial,
@@ -1192,6 +1368,41 @@ their skins and nothing else: they are put back on the free items and the game o
 <p>The project ships with Google's official <strong>test</strong> ad unit IDs so you can run it immediately
 without an AdMob account. You must switch to your own IDs before publishing.</p>
 
+<p>Advertising is the only external service this game talks to. It uses the
+<a href="https://developers.google.com/admob/flutter/quick-start">Google Mobile Ads SDK for Flutter</a>
+(the <a href="https://pub.dev/packages/google_mobile_ads"><code>google_mobile_ads</code></a> package),
+together with Google's <a href="https://developers.google.com/admob/ump/android/quick-start">User
+Messaging Platform</a> for consent, which ships inside that same package. There is no other API, no
+backend of ours, and no network call anywhere else in the game.</p>
+
+<h3>Every AdMob ID in this package is a Google test value</h3>
+
+<p>Nothing in this archive carries an author-owned AdMob identity. You can confirm it in five places
+before you change anything, and you should &mdash; a copy of somebody else's publisher ID would earn
+them money from your players, silently:</p>
+
+<table>
+  <tr><th>Where</th><th>What ships</th></tr>
+  <tr><td><code>android/app/src/main/AndroidManifest.xml</code></td>
+      <td><code>ca-app-pub-3940256099942544~3347511713</code> &mdash; Google's test application ID</td></tr>
+  <tr><td><code>ios/Runner/Info.plist</code></td>
+      <td><code>ca-app-pub-3940256099942544~1458002511</code> &mdash; Google's test application ID</td></tr>
+  <tr><td><code>lib/services/ad_ids.dart</code>, test units</td>
+      <td>Google's four public test unit IDs, all under publisher
+      <code>ca-app-pub-3940256099942544</code></td></tr>
+  <tr><td><code>lib/services/ad_ids.dart</code>, live units</td>
+      <td>Four <code>REPLACE_WITH_YOUR_&hellip;</code> placeholders, one per slot</td></tr>
+  <tr><td><code>lib/services/ad_ids.dart</code>, <code>kReleaseAds</code></td>
+      <td><code>false</code></td></tr>
+</table>
+
+<p>A placeholder is deliberately <em>not</em> a copy of the matching test ID. The two mistakes are not
+symmetrical: an unfilled slot asks for an invalid unit and is told there is no fill, which earns
+nothing and says so on the first device, whereas a stray test ID would serve Google's test inventory
+perfectly and earn nothing <em>quietly</em>, possibly for months.
+<code>test/services/ad_ids_test.dart</code> asserts that no live ID is ever a copy of a test ID, and
+that <code>kReleaseAds</code> cannot be true while any slot is still a placeholder.</p>
+
 <ol class="steps">
   <li>Create an AdMob account and register your app, then create one <strong>interstitial</strong> and one
     <strong>rewarded</strong> ad unit. Those are the only two formats the project knows about &mdash; there is no
@@ -1401,7 +1612,7 @@ from the SDK and <code>gen-l10n</code> &mdash; so there is no third-party locali
 build step beyond the one <code>flutter pub get</code> already runs.</p>
 
 <p><strong>Thirteen languages ship:</strong> English, Bangla, Arabic, Hindi, Russian, Turkish, German,
-Chinese, Amharic, French, Greek, Spanish and Brazilian Portuguese. 208 sentences each. Nothing is bundled
+Chinese, Amharic, French, Greek, Spanish and Brazilian Portuguese. 211 sentences each. Nothing is bundled
 to support them &mdash; the platform's own fonts render Bengali, Devanagari, Arabic, Cyrillic, Greek, Han
 and Ethiopic on any current phone, which is why <code>assets/fonts/</code> is empty.</p>
 
@@ -2015,11 +2226,87 @@ so update <code>maxCandidates</code> beside it to match (it is deliberately the 
 is never cut off part-way through an aim) and reword the difficulty picker, which currently promises that Hard
 &ldquo;sees every shot on the board&rdquo;.</p>
 
+<h3>CocoaPods fails when building for iOS</h3>
+
+<p>Everything iOS-side is installed by CocoaPods, and the first run is where it goes wrong. Work
+through these in order:</p>
+
+<ul>
+  <li><strong>"specs repository is too out-of-date to satisfy dependencies"</strong> &mdash; your local
+  copy of the CocoaPods spec repository predates the versions this project asks for:
+  <pre><code>cd ios &amp;&amp; pod install --repo-update</code></pre></li>
+
+  <li><strong>An <code>ffi</code> or architecture error on an Apple Silicon Mac</strong>
+  (<code>LoadError</code>, <code>bad CPU type</code>, or a complaint about
+  <code>arm64</code>) &mdash; this happens when CocoaPods is running under the old system Ruby rather
+  than a native one. The durable fix is to install it through Homebrew, which gives you an
+  arm64 build:
+  <pre><code>brew install cocoapods
+pod --version</code></pre>
+  The older workaround of forcing Rosetta &mdash;
+  <code>sudo arch -x86_64 gem install ffi</code> then <code>arch -x86_64 pod install</code> &mdash;
+  still works, but it leaves you running an emulated toolchain for the life of the project.</li>
+
+  <li><strong>"CocoaPods did not set the base configuration of your project because your project
+  already has a custom config set"</strong> &mdash; this one is a <em>warning</em> rather than a
+  failure, and you will probably see it. It concerns Flutter's <code>Profile</code> build
+  configuration, which the stock <code>.xcconfig</code> files do not wire up to Pods. Debug and
+  release builds are unaffected and you can ignore it. If you want it gone, open
+  <code>ios/Runner.xcworkspace</code> in Xcode and set the <code>Runner</code> target's Profile
+  configuration to include
+  <code>Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig</code>.</li>
+</ul>
+
+<p>If a pod install leaves the project in a confusing state, the reliable reset is
+<code>flutter clean</code>, then <code>flutter pub get</code>, then
+<code>cd ios &amp;&amp; rm -rf Pods Podfile.lock &amp;&amp; pod install</code>.</p>
+
+<h3>The AdMob consent form never appears while testing</h3>
+
+<p>Almost always correct behaviour rather than a fault. Check these in order, because the first two
+account for most of it:</p>
+
+<ol class="steps">
+  <li><strong>You are not in a region that requires one.</strong> The User Messaging Platform only
+  shows a form where consent is legally required &mdash; broadly the EEA and the UK. Outside it there
+  is nothing to ask, so nothing appears, and the app correctly goes straight to requesting ads.</li>
+
+  <li><strong>You have not created the message in AdMob yet.</strong> The form is authored in your own
+  AdMob account under <em>Privacy &amp; messaging</em>, not in this code. Until you publish one, UMP
+  has no form to show. See <a href="#ads">Consent in GDPR regions</a>.</li>
+
+  <li><strong>Nothing has asked for an ad.</strong> Consent is gathered the first time an ad is
+  requested, not at launch, so opening the app and stopping at the home screen will never trigger it.
+  Finish a match against the robot, or open the daily reward screen.</li>
+
+  <li><strong>You have already answered it.</strong> Consent is remembered. Either reinstall the app,
+  or call <code>ConsentInformation.instance.reset()</code> once from a debug build to clear it.</li>
+</ol>
+
+<p>To make the form appear on a device that is not in the EEA, use the debug hooks already present at
+the top of <code>lib/services/consent_service.dart</code>: set <code>kConsentDebugGeography</code> to
+<code>DebugGeography.debugGeographyEea</code> and put your device's hashed ID into
+<code>kConsentTestDeviceIds</code>. The hashed ID is printed by the SDK itself the first time you run
+on that device &mdash; look for it in the log:</p>
+
+<pre><code>adb logcat | grep -i UserMessagingPlatform</code></pre>
+
+<p>The line to copy reads <code>Use new ConsentDebugSettings.Builder().addTestDeviceHashedId("&hellip;")</code>.
+<strong>Both settings are debug aids &mdash; clear them before you build a release</strong>, or real
+users will be shown a form intended for your test device.</p>
+
 <h2 id="credits">Credits &amp; licences</h2>
 
 <p>This item is built on the following open-source packages, each under its own licence. The versions below
 are the ones the project is pinned to; run <code>flutter pub deps</code> at any time for the full dependency
 tree, including transitive packages.</p>
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/licences.png" alt="The in-app licences screen listing every open-source package" loading="lazy">
+    <figcaption>Settings &rarr; Licences, in the app itself. It is built from Flutter's own licence registry, so it lists every package in the resolved tree and cannot fall behind a dependency change.</figcaption>
+  </figure>
+</div>
+
 
 <table>
   <tr><th>Package</th><th>Version</th><th>Purpose</th><th>Licence</th></tr>
@@ -2077,7 +2364,7 @@ exact error message and the steps that produce it — that information resolves 
 
 <h2 id="changelog">Changelog</h2>
 
-<p>The full version history ships with the item in <code>CHANGELOG.md</code>.</p>
+<p>The full version history ships with the item as <code>CHANGELOG.md</code> and is also <a href="changelog.txt">published here</a>.</p>
 
 <footer>
   <p>Carrom Circuit documentation &middot; v1.0.0</p>
