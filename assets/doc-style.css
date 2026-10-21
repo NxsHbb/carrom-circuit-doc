@@ -1,0 +1,166 @@
+/* Carrom Circuit buyer documentation — offline, no external assets. */
+
+:root {
+  --bg: #fbf7f1;
+  --surface: #ffffff;
+  --sidebar: #2b160d;
+  --sidebar-text: #e8d9c5;
+  --sidebar-active: #d8b24a;
+  --text: #2a2320;
+  --muted: #6d6159;
+  --border: #e4dacd;
+  --accent: #a8762c;
+  --code-bg: #f3ece1;
+  --note: #f5efe2;
+  --note-border: #d8b24a;
+  --warn: #fdf1ec;
+  --warn-border: #c0603f;
+  --radius: 8px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ---------- layout ---------- */
+
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 268px;
+  flex: 0 0 268px;
+  background: var(--sidebar);
+  color: var(--sidebar-text);
+  padding: 28px 0 48px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar .brand {
+  padding: 0 24px 20px;
+  border-bottom: 1px solid rgba(232, 217, 197, 0.16);
+  margin-bottom: 16px;
+}
+
+.sidebar .brand strong { display: block; font-size: 19px; color: #fff; letter-spacing: 0.3px; }
+.sidebar .brand span { font-size: 13px; color: rgba(232, 217, 197, 0.65); }
+
+.sidebar nav a {
+  display: block;
+  padding: 7px 24px;
+  color: var(--sidebar-text);
+  text-decoration: none;
+  font-size: 14.5px;
+  border-left: 3px solid transparent;
+}
+
+.sidebar nav a:hover { background: rgba(255, 255, 255, 0.05); }
+.sidebar nav a.active { border-left-color: var(--sidebar-active); color: #fff; background: rgba(216, 178, 74, 0.12); }
+.sidebar nav .group { padding: 18px 24px 6px; font-size: 11.5px; text-transform: uppercase; letter-spacing: 1.1px; color: rgba(232, 217, 197, 0.5); }
+
+.content { flex: 1; min-width: 0; padding: 48px 56px 120px; max-width: 900px; }
+
+/* ---------- typography ---------- */
+
+h1 { font-size: 34px; margin: 0 0 8px; letter-spacing: -0.4px; }
+h2 { font-size: 24px; margin: 48px 0 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+h3 { font-size: 18px; margin: 28px 0 10px; }
+p, li { color: var(--text); }
+a { color: var(--accent); }
+.lede { font-size: 18px; color: var(--muted); margin-top: 0; }
+
+code {
+  background: var(--code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font: 13.5px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+
+pre code { background: none; padding: 0; font-size: 13px; }
+
+/* ---------- blocks ---------- */
+
+.note, .warn {
+  border-left: 4px solid var(--note-border);
+  background: var(--note);
+  padding: 12px 16px;
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin: 18px 0;
+}
+
+.warn { border-left-color: var(--warn-border); background: var(--warn); }
+.note p:first-child, .warn p:first-child { margin-top: 0; }
+.note p:last-child, .warn p:last-child { margin-bottom: 0; }
+
+table { border-collapse: collapse; width: 100%; margin: 18px 0; background: var(--surface); }
+th, td { border: 1px solid var(--border); padding: 9px 12px; text-align: left; font-size: 14.5px; vertical-align: top; }
+th { background: var(--code-bg); font-weight: 600; }
+
+
+.steps { counter-reset: step; list-style: none; padding-left: 0; }
+.steps > li { counter-increment: step; position: relative; padding-left: 40px; margin-bottom: 14px; }
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0; top: 1px;
+  width: 26px; height: 26px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 26px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+footer { margin-top: 72px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; }
+
+/* ---------- screenshots ---------- */
+
+/* Captured at 360 x 800 and shown narrower than that, so they stay crisp on
+   a high-density display without the page having to carry a second set.
+   `flex-wrap` is what lets a row of three fall to one column inside the
+   860px breakpoint below. */
+.shots { display: flex; flex-wrap: wrap; gap: 22px; margin: 26px 0 30px; }
+.shot { margin: 0; flex: 0 1 216px; min-width: 180px; }
+.shot img {
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--code-bg);
+}
+.shot figcaption {
+  margin-top: 9px; font-size: 13px; line-height: 1.45; color: var(--muted);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 860px) {
+  .layout { flex-direction: column; }
+  .sidebar { width: 100%; flex: none; height: auto; position: static; padding-bottom: 20px; }
+  .sidebar nav { display: flex; flex-wrap: wrap; gap: 2px 0; }
+  .sidebar nav a { border-left: none; border-bottom: 3px solid transparent; padding: 6px 14px; }
+  .sidebar nav a.active { border-left: none; border-bottom-color: var(--sidebar-active); }
+  .sidebar nav .group { width: 100%; padding: 12px 14px 4px; }
+  .content { padding: 28px 20px 80px; }
+  h1 { font-size: 27px; }
+}
+
+@media print {
+  .sidebar { display: none; }
+  .content { max-width: none; padding: 0; }
+}

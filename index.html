@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Carrom Circuit — Documentation</title>
+<link rel="stylesheet" href="assets/doc-style.css">
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="brand">
+    <strong>Carrom Circuit</strong>
+    <span>Documentation &middot; v1.0.0</span>
+  </div>
+  <nav>
+    <div class="group">Getting started</div>
+    <a href="#introduction">Introduction</a>
+    <a href="#requirements">Requirements</a>
+    <a href="#installation">Installation</a>
+    <a href="#running">Running the app</a>
+    <div class="group">Customising</div>
+    <a href="#structure">Project structure</a>
+    <a href="#rebranding">Rebranding</a>
+    <a href="#gameplay-settings">Gameplay settings</a>
+    <a href="#economy">Economy &amp; prize tables</a>
+    <a href="#shop">Equipment shop</a>
+    <a href="#ads">AdMob setup</a>
+    <a href="#languages">Languages</a>
+    <a href="#audio">Sound &amp; vibration</a>
+    <a href="#animations">Animations &amp; splash</a>
+    <div class="group">Releasing</div>
+    <a href="#android-release">Android release build</a>
+    <a href="#ios-release">iOS release build</a>
+    <a href="#privacy-policy">Your privacy policy</a>
+    <a href="#store-checklist">Store checklist</a>
+    <div class="group">Help</div>
+    <a href="#troubleshooting">Troubleshooting</a>
+    <a href="#credits">Credits &amp; licences</a>
+    <a href="#support">Support</a>
+    <a href="#changelog">Changelog</a>
+  </nav>
+</aside>
+
+<main class="content">
+
+<h1>Carrom Circuit</h1>
+<p class="lede">A complete offline carrom board game for Android and iOS, built with Flutter and Flame.</p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>Carrom Circuit is a full carrom game you can rebrand and publish as your own. It runs entirely offline —
+there is no backend, no login and no server cost. Everything a player earns is stored on their device.</p>
+
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/home.png" alt="The home screen, with the game's wordmark over a carrom board"
+         loading="lazy">
+    <figcaption>Home. Every button in the game is one
+    <code>CarromButton</code> widget.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/img/board-start.png" alt="A Tournament board at the opening arrangement"
+         loading="lazy">
+    <figcaption>A Tournament board at the opening break — nine white, nine black and the
+    queen.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/img/board-after-break.png" alt="The same board after the pack has been broken open"
+         loading="lazy">
+    <figcaption>After the break, with the table passed. The board turns to face whoever is
+    shooting, so each player aims from the bottom of the screen
+    (<code>flipBoardForSecondSeat</code>, on by default).</figcaption>
+  </figure>
+</div>
+
+<h3>What is included</h3>
+<ul>
+  <li>Realistic, deterministic carrom physics written from scratch in pure Dart</li>
+  <li><strong>Tournament</strong> — white vs black, queen and cover, full foul handling</li>
+  <li><strong>Scramble</strong> — a points race where any coin scores</li>
+  <li><strong>Pass &amp; Play</strong> for two players on a single device</li>
+  <li><strong>Solo Match</strong> against the robot, with Easy, Medium and Hard opponents</li>
+  <li><strong>Prize Tables</strong> — a 12-table ladder played for virtual coins, with a matchmaking screen</li>
+  <li>Virtual coin economy: daily rewards, rewarded-video coins, win and loss settlement</li>
+  <li>Cosmetic equipment shop: strikers, boards and coin sets</li>
+  <li>Google AdMob interstitial and rewarded video, frequency capped</li>
+  <li>Sound effects, haptics, settings and a polished menu flow</li>
+</ul>
+
+<h3>What is not included</h3>
+<p>Online multiplayer, user accounts, leaderboards, in-app purchases, chat, and any form of real-money play
+are deliberately out of scope. The coin economy is virtual only — coins cannot be bought, cashed out or
+transferred.</p>
+
+<div class="warn">
+  <p><strong>Third-party services are not included in your purchase.</strong> Any cost, account, approval or
+  policy obligation attached to a service outside this codebase is yours, and none of it is covered by the
+  price of the item:</p>
+  <ul>
+    <li><strong>Google AdMob</strong> — real ads need your own AdMob account and your own ad unit IDs.
+    Account approval, ad revenue, payment thresholds, policy compliance and any account suspension are
+    between you and Google. See <a href="#ads">AdMob setup</a>.</li>
+    <li><strong>Google Play</strong> — publishing needs your own Play developer account, which carries a
+    registration fee payable to Google.</li>
+    <li><strong>Apple</strong> — an iOS release needs your own Apple Developer Program membership, an annual
+    fee, and a Mac to build on. See <a href="#ios-release">iOS release build</a>.</li>
+    <li><strong>Privacy policy hosting</strong> — both stores require a publicly reachable URL, and arranging
+    it is yours. See <a href="#privacy-policy">Your privacy policy</a>.</li>
+  </ul>
+  <p>The game itself has no server, no subscription and no running cost of its own. If you would rather ship
+  without advertising, it reaches the game in only two screens —
+  <code>lib/features/game/match_stakes.dart</code> and
+  <code>lib/features/daily_reward/daily_reward_screen.dart</code>.</p>
+</div>
+
+<div class="note">
+  <p>The robot opponent runs the same physics engine the player does, searching hundreds of candidate shots
+  per turn in a background isolate. There is no scripted cheating, and no network call is ever made during
+  a match.</p>
+</div>
+
+<h2 id="requirements">Requirements</h2>
+
+<table>
+  <tr><th>Tool</th><th>Version</th><th>Notes</th></tr>
+  <tr><td>Flutter SDK</td><td>3.41.6 or newer (stable channel)</td><td>Dart 3.11.4 or newer</td></tr>
+  <tr><td>JDK</td><td>17</td><td>Required by the Android Gradle configuration</td></tr>
+  <tr><td>Android SDK</td><td>Platform 36 / build-tools 36</td><td>Installed through Android Studio</td></tr>
+  <tr><td>Android NDK</td><td>29.0.13599879</td><td>See the note below if you have a different one</td></tr>
+  <tr><td>Xcode</td><td>15 or newer</td><td>macOS only, for the iOS build</td></tr>
+  <tr><td>CocoaPods</td><td>1.13 or newer</td><td>macOS only</td></tr>
+  <tr><td>iOS deployment target</td><td>13.0</td><td>Pinned in <code>ios/Podfile</code></td></tr>
+</table>
+
+<p>Confirm your toolchain is healthy before you start:</p>
+<pre><code>flutter doctor -v</code></pre>
+
+<div class="note">
+  <p><strong>The Android SDK levels are pinned explicitly</strong>, in
+  <code>android/app/build.gradle.kts</code>: <code>compileSdk = 36</code>, <code>minSdk = 24</code> and
+  <code>targetSdk = 36</code>. They are deliberately not <code>flutter.compileSdkVersion</code> and friends,
+  which resolve from whichever Flutter SDK is installed — so two machines could otherwise build this project
+  against two different Android SDKs without either of them saying so. The pinned values are what the Flutter
+  SDK this was built against resolves to, so nothing about the shipped APK changes.</p>
+  <p><code>minSdk = 24</code> is Android 7.0 and is the floor <code>google_mobile_ads</code> requires;
+  lowering it will not build. Raise <code>targetSdk</code> as Google Play's yearly requirement moves, and
+  test on a device when you do — a new target opts the app into that Android release's behaviour changes.</p>
+  <p><strong>About the NDK version.</strong> The same file pins
+  <code>ndkVersion = "29.0.13599879"</code>. Nothing here ships native code and no plugin needs the NDK to
+  build, so any version you have will do. If Gradle reports that this NDK is missing, either install that
+  version from Android Studio (<em>Settings &rarr; Languages &amp; Frameworks &rarr; Android SDK &rarr; SDK
+  Tools &rarr; NDK (Side by side)</em>), or change the line to a version you already have, or replace it with
+  <code>ndkVersion = flutter.ndkVersion</code> to use whichever version your Flutter release expects.</p>
+</div>
+
+<h2 id="installation">Installation</h2>
+
+<ol class="steps">
+  <li>Unzip the item archive and open the project folder in your editor (VS Code or Android Studio).</li>
+  <li>Fetch the Dart packages:
+    <pre><code>flutter pub get</code></pre>
+  </li>
+  <li>On macOS, if you intend to build for iOS, install the native pods:
+    <pre><code>cd ios &amp;&amp; pod install --repo-update &amp;&amp; cd ..</code></pre>
+    <code>--repo-update</code> matters on a machine whose CocoaPods spec repository is out of date, which
+    otherwise fails with "specs repository is too out-of-date to satisfy dependencies".
+  </li>
+  <li>Check that everything compiles cleanly:
+    <pre><code>flutter analyze
+flutter test</code></pre>
+  </li>
+</ol>
+
+<p>Both commands should finish with no issues reported. If they do not, see
+<a href="#troubleshooting">Troubleshooting</a>.</p>
+
+<h2 id="running">Running the app</h2>
+
+<p>Connect a device or start an emulator, then:</p>
+<pre><code>flutter devices          # confirm your device is visible
+flutter run              # debug build
+flutter run --release    # full-speed build, use this to judge game feel</code></pre>
+
+<p>The menus are three screens deep at most. Home leads to mode select; the two modes that need a second
+question — Pass &amp; Play and Solo Match — ask it in a sheet rather than on a screen of their own.</p>
+
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/mode-select.png" alt="The mode select screen listing four ways to play"
+         loading="lazy">
+    <figcaption>Mode select. Tournament and Scramble name the rules; Pass &amp; Play and Solo Match name
+    the opponent.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/img/solo-difficulty.png" alt="The difficulty sheet offering Easy, Medium and Hard"
+         loading="lazy">
+    <figcaption>Solo Match asks for the rules, then the difficulty. Each tier is described by what the
+    player will see, not by the numbers behind it.</figcaption>
+  </figure>
+</div>
+
+<div class="note">
+  <p>Always judge physics and animation on a <strong>release</strong> build on a real device. Debug builds
+  run the Dart VM without optimisation and will feel noticeably slower.</p>
+</div>
+
+<h2 id="structure">Project structure</h2>
+
+<p>The code is split so that all game logic is plain Dart with no Flutter or Flame imports. That keeps it
+unit testable and lets the robot opponent run the exact same rules and physics the player does.</p>
+
+<pre><code>lib/
+├── main.dart                 app entry point, portrait lock
+├── app/                      MaterialApp, theme, routes
+├── core/                     PURE DART — no Flutter or Flame imports
+│   ├── physics/              vectors, bodies, the deterministic world
+│   ├── rules/                game state, Tournament and Scramble rule engines
+│   ├── ai/                   shot generation, simulation, scoring, difficulty
+│   └── economy/              wallet, prize tables, daily reward, shop catalogue
+├── game/                     Flame layer
+│   ├── config/               physics and board constants — tune here
+│   ├── skins/                the colours of each board, striker and coin set
+│   ├── components/           board, coins, striker, aim guide, effects
+│   ├── input/                striker placement and pull-to-aim
+│   └── overlays/             HUD, pause and result screens
+├── features/                 home, mode select, prize tables, shop, settings
+├── services/                 storage, audio, ads, haptics
+└── shared/                   reusable widgets and helpers
+
+assets/   images, audio and fonts
+docs/     this documentation
+test/     unit tests for physics, rules, AI and economy
+tool/     helper scripts: icon and sound generators, mutation harness</code></pre>
+
+<h3>Code quality gates</h3>
+<p>The project analyses more strictly than the Flutter defaults: implicit downcasts, inference that falls back
+to <code>dynamic</code> and raw generic types are all rejected, and a further set of lints is enabled in
+<code>analysis_options.yaml</code>. Both commands below should be clean before you ship a change:</p>
+<pre><code>flutter analyze
+flutter test</code></pre>
+<p>One test is structural rather than behavioural: <code>test/core_purity_test.dart</code> fails if anything
+under <code>lib/core/</code> imports Flutter, Flame or <code>dart:ui</code>. That boundary is what allows the
+rules and physics to run inside a background isolate for the robot's shot search, so it is worth keeping
+intact if you extend the game logic.</p>
+
+<p><strong>The physics engine's tests are mutation-verified.</strong> A deliberate fault is introduced into
+the engine one at a time &mdash; a sign flipped, a guard removed, a threshold moved &mdash; and the suite has
+to notice every one. That is a stronger claim than a passing suite: a green run proves the tests executed,
+not that they would catch a break. Three hundred mutations, all caught.</p>
+
+<p>Mutation testing is how several of the rules documented here were found to be untested despite a green
+suite, and it is worth knowing about if you change the engine: <strong>a passing suite after a physics change
+does not mean the change is safe</strong>, only that nothing already asserted broke. If you alter
+<code>lib/core/physics/</code> or <code>lib/core/rules/</code>, add a test that fails before your change and
+passes after it &mdash; that is the discipline the engine was built with, and the reason its behaviour is
+reproducible.</p>
+
+<p>Two structural tests enforce boundaries rather than behaviour, and both are worth keeping intact:
+<code>test/core_purity_test.dart</code>, described above, and the determinism tests in
+<code>test/physics/</code>, which assert that the same shot produces byte-identical output. The robot's shot
+search depends on that: it replays thousands of candidate shots through the same engine, so a
+non-deterministic change would make the AI's choices unrepeatable as well as untestable.</p>
+
+<p>Never run two at once, and never run <code>--check</code> beside a full sweep: a sweep keeps one file
+mutated while the suite runs, so anything else reading the source at that moment sees the mutated copy and
+reports patterns as stale when they are not.</p>
+
+<p>The source is formatted with <code>dart format</code>, so <code>dart format lib test</code> should report
+nothing changed. Run it before committing rather than after, for the reason above.</p>
+<p>Every mutation should be reported as <code>caught</code>. One reported as a gap means the suite would not
+have noticed that rule breaking — useful to run after you change the engine, and a good way to confirm your
+own additions are actually covered.</p>
+
+<h2 id="rebranding">Rebranding</h2>
+
+<p>Four things carry the default branding: the display name, the application ID, the launcher icon and the
+colour palette.</p>
+
+<h3>1. App display name</h3>
+<table>
+  <tr><th>Platform</th><th>File</th><th>What to change</th></tr>
+  <tr><td>Android</td><td><code>android/app/src/main/AndroidManifest.xml</code></td><td><code>android:label="Carrom Circuit"</code></td></tr>
+  <tr><td>iOS</td><td><code>ios/Runner/Info.plist</code></td><td><code>CFBundleDisplayName</code></td></tr>
+  <tr><td>Web</td><td><code>web/index.html</code>, <code>web/manifest.json</code></td><td>title, name, short_name</td></tr>
+</table>
+
+<h3>2. Application ID / bundle identifier</h3>
+<p>The project ships as <code>com.carromcircuit</code>. Replace it with your own identifier before
+publishing — both stores require at least two dot-separated segments, each starting with a letter.</p>
+
+<ol class="steps">
+  <li>In <code>android/app/build.gradle.kts</code>, change both <code>namespace</code> and
+    <code>applicationId</code>.</li>
+  <li>Move <code>android/app/src/main/kotlin/com/carromcircuit/MainActivity.kt</code> into a folder
+    path matching your new ID, and update its <code>package</code> line to match. Kotlin requires the folder
+    path to mirror the package, so these two always move together.</li>
+  <li>In Xcode, open <code>ios/Runner.xcworkspace</code> and set <em>Bundle Identifier</em> on the Runner
+    target (or search and replace <code>PRODUCT_BUNDLE_IDENTIFIER</code> in
+    <code>ios/Runner.xcodeproj/project.pbxproj</code>).</li>
+  <li>Run <code>flutter clean</code> and rebuild.</li>
+  <li>Run <code>flutter test test/app/package_id_test.dart</code>. It checks that all five places the
+    identifier is written out agree, which is worth having because only two of them complain on their own:
+    Gradle and Xcode never read each other, so a half-finished rename ships to the two stores under two
+    different identities.</li>
+</ol>
+
+<div class="warn">
+  <p>Once an app is live on a store its application ID can never be changed. Decide on the final identifier
+  before your first upload.</p>
+</div>
+
+<h3>3. Launcher icon</h3>
+<p>There are two sets of icons on Android, and replacing only the first is the usual mistake.</p>
+
+<table>
+  <tr><th>Files</th><th>Used by</th></tr>
+  <tr><td><code>android/app/src/main/res/mipmap-*/ic_launcher.png</code></td><td>Android 7 and older, and the
+    launch screen, which centres this bitmap on the wood</td></tr>
+  <tr><td><code>android/app/src/main/res/mipmap-*/ic_launcher_background.png</code><br>
+    <code>…/ic_launcher_foreground.png</code><br><code>…/ic_launcher_monochrome.png</code><br>
+    described by <code>mipmap-anydpi-v26/ic_launcher.xml</code></td><td><strong>Android 8 and newer</strong>,
+    which is to say every current device</td></tr>
+  <tr><td><code>ios/Runner/Assets.xcassets/AppIcon.appiconset/</code></td><td>iOS</td></tr>
+  <tr><td><code>web/icons/</code>, <code>web/favicon.png</code></td><td>the web build</td></tr>
+</table>
+
+<div class="warn">
+  <p>An <strong>adaptive icon</strong> is a 108dp drawable and the launcher chooses the mask, so as little as
+  the centre 66dp is guaranteed to survive. Keep anything your icon cannot afford to lose inside that circle
+  — 33dp of radius out of 108, or about 56% of the width. Art outside it looks perfect on a launcher with a
+  square mask and has its corners sliced off on a round one. The background layer must be fully opaque to its
+  own edge, or the system composites it onto black.</p>
+</div>
+
+<p>The project includes a dependency-free generator that produces every file above, including the adaptive
+layers at every density:</p>
+<pre><code>python3 tool/generate_app_icons.py</code></pre>
+<p>It needs only Python 3 — no extra libraries. Edit the colour and layout constants at the top of the script
+if you would rather generate a recoloured variant than draw your own; the foreground's scale is derived from
+the board geometry, so it stays inside the safe circle as you move things.</p>
+
+<p>If you replace the art by hand, <code>flutter test test/app/launcher_icon_test.dart</code> checks the
+properties above against your own files: the layers exist at every density and are the right size, the
+foreground stays inside the safe circle without being needlessly small, the background is opaque, and the
+themed layer is a silhouette rather than a copy of the picture.</p>
+
+<h3>4. Colours and fonts</h3>
+<p>The palette and text styles are defined in <code>lib/app/theme.dart</code>. Every colour in the interface
+comes from the <code>CarromColors</code> constants and the <code>CarromGradients</code> built from them, so
+changing those values reskins the whole app. <code>CarromMetrics</code> holds the shared corner radii and
+spacing.</p>
+
+<p>The app ships with <strong>no bundled fonts</strong> and uses the platform's default typeface, which
+keeps the download small and renders every script the device itself supports. <code>assets/fonts/</code> is
+there and empty for you. To bundle your own, drop the font files in, declare the family in the
+<code>flutter: fonts:</code> section of <code>pubspec.yaml</code>, and set <code>fontFamily</code> on the
+<code>ThemeData</code> returned by <code>CarromTheme.build()</code> — that one method is the only place the
+typeface is decided. Check the licence first: a font redistributed inside a sold item needs one that permits
+it, such as the SIL Open Font License or Apache 2.0.</p>
+
+<h3>5. Orientation</h3>
+<p>The game is locked to portrait in three places. Change all three if you need a different orientation:</p>
+<ul>
+  <li><code>lib/main.dart</code> — <code>SystemChrome.setPreferredOrientations</code></li>
+  <li><code>android/app/src/main/AndroidManifest.xml</code> — <code>android:screenOrientation</code></li>
+  <li><code>ios/Runner/Info.plist</code> — <code>UISupportedInterfaceOrientations</code></li>
+</ul>
+
+<h2 id="gameplay-settings">Gameplay settings</h2>
+
+<p>All gameplay numbers are collected in configuration files rather than scattered through the code, so you
+can tune the game without touching logic.</p>
+
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/aim-guide.png" alt="A shot being aimed, with the aim line and the aim guide shown"
+         loading="lazy">
+    <figcaption>Aiming. The dashed line is direction and its colour is power; the ring is where the
+    striker would be at the moment of contact, the dot is where the two edges meet, and the short line
+    is the direction that coin would set off in.</figcaption>
+  </figure>
+</div>
+
+<h3>How the board is drawn</h3>
+<p>The board is painted with Canvas rather than loaded from an image, in
+<code>lib/game/components/board_component.dart</code>. Frame, surface, pockets, baselines, centre circles and
+arrows each have their own method, so a change stays local: edit <code>_paintSurface</code> to restyle the
+playing area, <code>_paintPockets</code> to restyle the holes, and so on. Replacing the whole look with your
+own artwork means replacing that one component.</p>
+
+<p>Everything is expressed in board units and the camera is fixed to show exactly the board, so nothing in the
+game layer does screen-pixel arithmetic. That is why the board fits every screen size without breakpoints.</p>
+
+<p><strong>The board and the pieces are drawn once, not every frame.</strong> Neither picture changes while a
+match is played &mdash; the board is fixed and a coin only moves &mdash; so each is rasterised into an image by
+<code>lib/game/paint_cache.dart</code> and blitted from then on, at the scale the screen is actually drawing at.
+Profiling on a device put the saving at roughly 2&nbsp;ms of GPU time per frame. You edit the painting methods
+exactly as before and the cache picks the change up; it rasterises your code rather than a copy of it. The one
+thing to know: <em>anything drawn outside the cached box is cut off.</em> The box is the board plus
+<code>_shadowSpill</code> in <code>board_component.dart</code>, and a piece's radius times
+<code>kPieceSpill</code> in <code>piece_painter.dart</code>, both sized for the blurred shadows that already
+spill past their shapes. If you add a glow or a larger shadow, widen the matching constant.</p>
+
+<p>The coins and the striker are drawn by <code>coin_component.dart</code> and <code>striker_component.dart</code>,
+which share one <code>paintPiece</code> helper so every piece catches the light from the same direction. Neither
+component stores a position: each reads it from its body in the physics world every frame, so what you see can
+never disagree with what the engine is simulating.</p>
+
+<p>The opening arrangement is built by <code>lib/core/physics/formation.dart</code> — queen on the centre spot,
+six coins touching her, twelve packed around those on a hexagonal lattice. Change the lattice there if you want
+a different starting layout; the colours alternate automatically.</p>
+
+<h3>Board dimensions</h3>
+<p><code>lib/game/config/board_config.dart</code>. The board is modelled in logical units where one unit is
+one millimetre of a real carrom board: a 740 &times; 740 playing surface, 30 pocket radius, 15.5 coin
+radius and 26 striker radius. The Flame layer scales these to fit any screen, so changing them changes
+proportions, not the fit.</p>
+
+<p><strong>The pocket is deliberately larger than a real board’s</strong>, which is about 22.25 units by
+this scale and is where this project started. It was raised to 30 because the game was measured as too hard
+to score in: on a scattered board a <em>perfectly</em> aimed shot dropped only 46.7% of the time at the old
+size, against 66.7% at this one. The gain flattens above this — 27 already reaches 63.3% — so there is
+little left to buy by going further.</p>
+
+<p><strong>The striker is deliberately larger than a real one too</strong> — 26 against about 20.5 by
+this scale — and the two numbers belong together. At 20.5 the 30-unit pocket swallowed the striker about
+four times as often as the original board did (2.7% of shots across a sweep of every spot, angle and
+power, against 0.7%), which is a foul the player did not earn. Widening the striker brings that to 1.3%
+and, pleasingly, costs nothing in scoring: a bigger striker is a bigger hammer and finds the coin it is
+aimed at slightly more often. <strong>It must stay below <code>kPocketRadius</code></strong>; a striker
+too fat for the hole could never be pocketed, and the Section 7.2 striker foul is a rule of the game.
+A sweep in <code>test/physics/shot_feel_test.dart</code> guards both ends of that.</p>
+
+<p>Two things move with <code>kPocketRadius</code> besides the capture circle, which is why it is worth
+changing only here. <code>BoardGeometry.hasCushionAt</code> opens a gap of exactly this radius at each end of
+every cushion, and <code>BoardComponent</code> draws the holes at this size — so the holes on screen and the
+holes the physics uses cannot disagree. The two stay consistent at any value: a body inside the cushion gap is
+by definition within the capture circle by the time it reaches the wall plane, so widening the gap can never
+let a coin leave the board. A test in <code>test/physics/shot_feel_test.dart</code> pins the easing as a
+consequence rather than as a number, by firing a shot that misses the hole’s centre line by 26 units — more
+than the old radius, less than this one — and requiring it to drop.</p>
+
+<h3>Physics feel</h3>
+<p>Every physics constant lives in <code>lib/game/config/physics_config.dart</code>, as a single
+<code>kCarromPhysics</code> object handed to the engine. The engine itself holds no numbers, so this file is
+the only place to tune the game's feel. The values most worth experimenting with:</p>
+<table>
+  <tr><th>Constant</th><th>Default</th><th>Effect of raising it</th></tr>
+  <tr><td>Min striker speed</td><td>470 units/s</td><td>A firmer gentlest shot; see the note below</td></tr>
+  <tr><td>Max striker speed</td><td>2200 units/s</td><td>Harder shots at 100% power</td></tr>
+  <tr><td>Rolling friction</td><td>600 units/s&sup2;</td><td>Coins stop sooner; a slower, heavier feel</td></tr>
+  <tr><td>Coin–coin restitution</td><td>0.92</td><td>Livelier, more energetic collisions</td></tr>
+  <tr><td>Coin–wall restitution</td><td>0.75</td><td>Stronger rebounds off the cushions</td></tr>
+  <tr><td>Pocket capture speed</td><td>1800</td><td>Fewer coins rattle out of pockets</td></tr>
+  <tr><td>Striker mass</td><td>1.6</td><td>Coins are the reference at 1.0; a heavier striker shifts coins further</td></tr>
+</table>
+
+<p>The two striker speeds are the ends of the power meter, and the pair matters more than either on its
+own. Pull-back maps onto the range between them, not up from zero: a shot at 0% power leaves at
+<code>minStrikerSpeed</code> and one at 100% at <code>maxStrikerSpeed</code>. That floor is not decoration.
+Distance travelled goes as the <em>square</em> of speed, so with a map that started at zero the weakest shots
+could not carry the striker as far as the pack &mdash; the bottom fifth of the meter wasted a turn, and taming
+the top end made the dead band larger rather than smaller. If you raise <code>maxStrikerSpeed</code>, check
+that full power still looks like a break rather than a pinball table; if you lower
+<code>minStrikerSpeed</code>, check that the softest shot still reaches the coins. The test group in
+<code>test/physics/shot_feel_test.dart</code> checks both for you.</p>
+
+<p>Pocket capture is worth understanding before you change it. A coin reaching a pocket below
+<code>pocketCaptureSpeed</code> drops in; a faster one skips across the hole, strikes the far lip and stays in
+play. Raising the value makes hard shots at the corners more reliable and the game easier; lowering it makes
+power risky and rewards touch. It is one of the few numbers here that changes how the game <em>plays</em>
+rather than how it feels.</p>
+
+<p>Three further constants control the simulation rather than the feel, and are better left alone unless you
+know why you are changing them: <code>fixedTimeStep</code> (1/120 s), <code>maxSubSteps</code> (4) and
+<code>maxSubStepTravelRatio</code> (0.5). Together they decide how finely a fast shot is subdivided. A striker
+at full power crosses about 20 units per step, more than a coin's radius, so without sub-stepping it could
+pass straight through a coin.</p>
+
+<div class="warn">
+  <p>The physics engine is deterministic by design — identical input always produces an identical result,
+  which is what lets the robot simulate shots accurately. The opponent plays by copying the board, running
+  <code>simulateUntilRest</code> on hundreds of candidate shots, and choosing one; the real board then has to
+  reproduce that shot exactly. Never introduce randomness or frame-time dependence into the physics step, or
+  the opponent's chosen shot will stop matching what the player sees.</p>
+</div>
+
+<h3>Striker placement</h3>
+<p>Where the striker may sit is decided by <code>BaselinePlacement</code> in
+<code>lib/core/rules/striker_placement.dart</code>: the baseline span, the conversion between the slide bar's
+position and a point on the board, and whether a spot is clear of every coin. The robot uses the same class,
+so it can never aim from a spot a player could not have used.</p>
+
+<p>A spot that overlaps a coin is shown in red rather than being corrected, because the player chose it. If you
+would rather the striker snapped to the closest legal spot instead, call <code>nearestClearFraction</code> and
+use what it returns.</p>
+
+<h3>How a shot feels</h3>
+<p>The shot gesture is tuned in <code>lib/game/config/input_config.dart</code>:</p>
+<table>
+  <tr><th>Constant</th><th>Default</th><th>Effect of raising it</th></tr>
+  <tr><td><code>kFullPowerPull</code></td><td>260</td><td>A longer drag is needed for a hard shot, so aiming is finer but more effort</td></tr>
+  <tr><td><code>kCancelPull</code></td><td>26</td><td>More forgiving about abandoning a shot, but very gentle taps become impossible</td></tr>
+  <tr><td><code>kAimLineLength</code></td><td>760</td><td>A longer aim line, at every power, and a guide
+      that marks a coin further ahead</td></tr>
+</table>
+<p>Pull-back maps onto the striker's speed through <code>PhysicsConfig.shotSpeed</code>, evenly across the
+range between <code>minStrikerSpeed</code> and <code>maxStrikerSpeed</code> rather than up from zero. The
+distance a player feels in their thumb matches the speed they see on the board. Shortening
+<code>kFullPowerPull</code> makes the game feel twitchier, lengthening it makes fine shots easier and hard
+shots a stretch &mdash; on a small phone that trade-off is worth testing in your own hands before changing
+it.</p>
+
+<p>The aim line does <em>not</em> work that way: it is <code>kAimLineLength</code> long whatever the power.
+It also sets how far ahead the aim guide looks, so raising it is not purely cosmetic once the guide is
+switched on. The line answers &ldquo;where am I pointing&rdquo;, and that question has the same answer however hard the
+shot is going to be &mdash; tying its length to power put the guide at its shortest for exactly the delicate
+shots that need it most. How hard the shot will be is said twice over already, by the colour of the line and
+by the meter beside the board, and neither of those costs a player their aim to read. The line is then clipped
+at the cushion it points at, so it never paints across the frame and its tip always marks the wall the striker
+is aimed at. Covered by <code>test/game/aim_line_test.dart</code>.</p>
+
+<h3>Rules and turn timer</h3>
+<p><code>lib/core/rules/</code> holds a <code>RulesConfig</code> object with the variant toggles: whether the
+queen may only be pocketed after one of your own coins, whether failing to touch any coin is a foul, the
+turn timer length (20 seconds by default) and the Scramble point values.</p>
+
+<p>Every rule in this folder is written against one object, <code>ShotResult</code>, rather than against the
+board or the physics engine. A shot produces one: what fell and in what order, whether the striker went down,
+and which coin the striker touched first &mdash; a cushion first does not count, because a rebound shot is
+legal. The game builds one the moment the board stops moving and hands it to the rules engine.</p>
+
+<p>The Tournament engine lives in <code>lib/core/rules/tournament_rules.dart</code> and the toggles it reads
+are in <code>RulesConfig</code>:</p>
+<table>
+  <tr><th>Toggle</th><th>Default</th><th>What it changes</th></tr>
+  <tr><td><code>queenRequiresOwnCoinFirst</code></td><td>true</td><td>Off, and the queen may be taken at any time</td></tr>
+  <tr><td><code>noCoinTouchedIsFoul</code></td><td>false</td><td>On, and a shot that reaches no coin ends the turn</td></tr>
+  <tr><td><code>turnTimed</code></td><td>true</td><td>Off, and strokes are not timed at all</td></tr>
+  <tr><td><code>turnSeconds</code></td><td>20</td><td>How long a player has to shoot, when <code>turnTimed</code></td></tr>
+  <tr><td><code>coinsPerPlayer</code></td><td>9</td><td>How many coins a seat must bank to win</td></tr>
+</table>
+
+<p>Four points in Section 7.2 of the project spec can be read two ways, and the engine settles each one.
+Written out because houses genuinely differ, and because each is a one-line change:</p>
+<ul>
+  <li>Needing a coin of your own before the queen means <em>before that shot</em> &mdash; your first coin and
+      the queen in a single stroke is too early.</li>
+  <li>Taking the queen keeps the table, so the cover can be made on the very next stroke.</li>
+  <li>Taking the queen too early is not itself turn-ending; she simply goes back to the centre.</li>
+  <li>Your last coin comes back if the queen is unsettled, whether she is on the board or waiting to be
+      covered.</li>
+</ul>
+<p>Each has a test whose name begins <code>INTERPRETATION:</code> in
+<code>test/rules/tournament_rules_test.dart</code>, so you can find and change any of them quickly.</p>
+
+<p>The Scramble engine is beside it in <code>lib/core/rules/scramble_rules.dart</code>. Nobody owns a colour
+there: any coin can be pocketed by either player and scores for whoever sank it, so the game is a points race
+that ends when the board is clear. Its four values are also in <code>RulesConfig</code>:</p>
+<table>
+  <tr><th>Value</th><th>Default</th><th>What it changes</th></tr>
+  <tr><td><code>scrambleWhitePoints</code></td><td>20</td><td>Points for a white coin</td></tr>
+  <tr><td><code>scrambleBlackPoints</code></td><td>10</td><td>Points for a black coin</td></tr>
+  <tr><td><code>scrambleQueenPoints</code></td><td>50</td><td>Points for the queen, paid only once she is covered</td></tr>
+  <tr><td><code>scrambleStrikerPenalty</code></td><td>10</td><td>Points lost for pocketing the striker, never below zero</td></tr>
+</table>
+
+<p>Scramble's spec is shorter and leaves more unsaid, so it settles four readings of its own, each again a
+one-line change with a matching <code>INTERPRETATION:</code> test in
+<code>test/rules/scramble_rules_test.dart</code>:</p>
+<ul>
+  <li>The queen may be taken at any time &mdash; <code>queenRequiresOwnCoinFirst</code> is a Tournament
+      toggle and Scramble does not read it. Only the cover holds her.</li>
+  <li>Any coin covers her, either colour; but only the player who sank her can cover her, so she can sit
+      unsettled while the opponent shoots.</li>
+  <li>Taking the queen keeps the table, so the cover can be made on the very next stroke.</li>
+  <li>The cover is waived once no coins are left on the board. Without that the game cannot end: she needs a
+      coin to settle, none remains, and she would return to the board to be pocketed again forever.</li>
+</ul>
+<p>A level score is a draw &mdash; <code>GameState.isDraw</code> &mdash; rather than a sudden-death round,
+which the spec makes optional.</p>
+
+<h3>Turns, the clock and the HUD</h3>
+<p>One game is a <code>Match</code> (<code>lib/core/rules/match.dart</code>): the mode, the rules engine it
+builds, the board as the rules see it, and the turn clock. It is the single authority on whose turn it is
+&mdash; the board follows it, never the other way round &mdash; so a whole game can be played out in a test
+with no screen and no physics. <code>GameMode.tournament</code> and <code>GameMode.scramble</code> each build
+their own engine and pass your <code>RulesConfig</code> straight through.</p>
+
+<p>The clock is <code>TurnTimer</code>, driven by the game loop rather than by a wall clock. It is held while a
+shot is playing out, because a player is timed on deciding and aiming, not on watching the coins run, and every
+stroke gets a fresh allowance &mdash; including the next one in a visit the player has kept, since holding one
+clock across a run of pocketed coins would punish them for shooting well. Change
+<code>RulesConfig.turnSeconds</code> for the length and <code>TurnTimer.urgentSeconds</code> for how long the
+final warning lasts; the ring around the active avatar follows both.</p>
+
+<p>A match can also have <strong>no clock at all</strong>, which the player controls from the Turn timer
+switch in Settings and which <code>RulesConfig.turnTimed</code> sets. An untimed match has
+<code>Match.timer == null</code> rather than a timer nobody starts &mdash; so there is nothing to read a time
+out of, no ring is drawn round the active avatar, and the pause panel does not claim to have stopped a clock.
+If you build a screen that reads the clock, ask <code>Match.isTimed</code> first.</p>
+
+<p>Both engines return instructions rather than positions: a <code>TurnOutcome</code> says only <em>that</em> a
+coin must come back, never which one or where. <code>CentrePlacement</code>
+(<code>lib/core/rules/centre_placement.dart</code>) is the other half, and it answers the Section 7.2 phrase
+"the centre, or the nearest free spot" by ringing outwards from the centre spot until it finds room that is on
+the surface, clear of every coin and off the pocket mouths. The robot will use the same code, because a
+candidate shot has to be simulated from the position a returned coin would really take.</p>
+
+<p>The HUD is Flutter widgets, not Flame components: a panel at each end of the screen so each seat's own
+information is nearest them. <code>HudPanel</code> watches <code>HudViews</code> &mdash; three notifiers rather
+than one, because the state changes once a stroke, the clock every frame and the input gate twice a stroke, and
+bundling them would repaint both panels sixty times a second to animate one ring. Tournament gives each seat a
+tray of its own colour, as a real board does; Scramble has a single shared tray of what has come off the board,
+because nobody owns a colour there and a tray beside a Scramble player would claim an ownership the rules do
+not recognise. Avatars are Canvas-drawn
+(<code>lib/shared/widgets/player_avatar.dart</code>): either initials on a coloured disc, which is what the
+sixteen robot avatars of the matchmaking screen use, or one of the forty-eight drawn symbols a player can
+choose for themselves. See <a href="#profile">the player's name and avatar</a>.</p>
+
+<h3>Modes, seats and Pass &amp; Play</h3>
+<p>The four modes of the item description are really two axes. Tournament and Scramble name the
+<em>rules</em>; Pass &amp; Play and Solo Match name the <em>opponent</em>. <code>MatchSetup</code>
+(<code>lib/core/rules/match_setup.dart</code>) carries one of each, so every combination is playable and the
+robot does not need a fifth and sixth mode invented for it. It is what the board takes as its
+<code>Routes.game</code> route argument:</p>
+<pre><code>Navigator.pushNamed(
+  context,
+  Routes.game,
+  arguments: const MatchSetup(rules: GameMode.scramble),
+);</code></pre>
+<p>Pushing the route without an argument falls back to two players at a Tournament board. On the mode-select
+screen, Tournament and Scramble go straight in; the Pass &amp; Play card asks which rules first.</p>
+
+<p>In a two-player game the whole board turns half a turn for the second seat, and the two player panels swap
+with it, so whoever is holding the phone always shoots from the bottom of the screen with the slide bar
+directly below their own baseline. A brief "Player 2's turn" notice fades in and out over the board as the
+table passes; the turn clock keeps running underneath it, so nothing a player has to tap costs them their own
+time.</p>
+
+<p>The turn is done in the Flutter layer with <code>AnimatedRotation</code>, not by rotating Flame's camera. A
+<code>Transform</code> transforms hit tests as well as painting, so the catapult pull keeps meaning what the
+player sees it mean with no coordinate arithmetic anywhere: pulling down the screen still fires up the screen
+even though "down the screen" is now "up the board". The one thing that does need converting is the slide bar,
+which sits outside the rotated board &mdash; <code>barFraction</code> in
+<code>lib/game/input/bar_mapping.dart</code> mirrors it, so the knob always follows the thumb.</p>
+
+<p>Turning the board never happens against the robot, which is not holding anything, and a player can switch
+it off in Settings if they play with the phone flat between them.</p>
+
+<p>This matters if you write your own variant. Because a rule only ever reads a <code>ShotResult</code>, you
+can test one without a physics world, and the robot scores a candidate shot with the same code that scores a
+real one &mdash; so the opponent can never play by rules the player is not held to. Build a
+<code>ShotResult</code> by hand in a test and assert what your rule does with it; see
+<code>test/rules/shot_result_test.dart</code>.</p>
+
+<h3>The robot's shot search</h3>
+<p>The robot plays by searching, not by rules of thumb. It generates shots that are aimed at a particular coin
+towards a particular pocket, plays each one out on a private copy of the board using the same physics engine
+the player's shots use, hands the result to the same rules engine, scores it and ranks the lot. Two
+consequences worth knowing before you change anything: the opponent can never play by rules the player is not
+held to, and because the engine is deterministic the shot it picks plays out on screen exactly as it did in the
+search.</p>
+
+<p>Everything is pure Dart in <code>lib/core/ai/</code>, so you can test it without a screen:</p>
+<table>
+  <tr><th>File</th><th>What it is</th></tr>
+  <tr><td><code>shot_candidate.dart</code></td><td>One shot: a spot on the baseline, an angle, a power. The
+    only shot value object in the project.</td></tr>
+  <tr><td><code>aim_geometry.dart</code></td><td>The arithmetic. Where the striker must be at contact to send a
+    coin to a pocket, whether a path is clear, and where to strike a cushion for a rebound.</td></tr>
+  <tr><td><code>candidate_generator.dart</code></td><td>Finds the aims on a board, prunes the hopeless ones and
+    expands the rest into shots at each power.</td></tr>
+  <tr><td><code>shot_simulator.dart</code></td><td>Plays a candidate out to a standstill on a copy of the
+    board, reusing one world so the search is affordable.</td></tr>
+  <tr><td><code>shot_evaluator.dart</code></td><td>Turns a finished shot into a number, one implementation per
+    mode.</td></tr>
+  <tr><td><code>shot_search.dart</code></td><td>Ties it together and ranks the results.
+    <code>ShotSearch.inBackground</code> runs the whole thing on a background isolate so the board keeps its
+    frame rate while the robot thinks.</td></tr>
+</table>
+
+<p>There are two things to tune, and they are independent. <strong>How wide the robot looks</strong> is
+<code>CandidatePlan</code> in <code>lib/core/ai/candidate_plan.dart</code>: spots along the baseline, power
+levels, the spread either side of a dead-on aim, and how many aims survive pruning. <strong>What the robot
+thinks a shot is worth</strong> is <code>AiWeights</code> in <code>lib/core/ai/ai_weights.dart</code>: a coin,
+the queen, the cover, the striker foul, an opponent coin, and how much it cares about leaving coins near
+pockets. A robot that gambles the striker too readily or chases the queen too hard is tuned there, not in the
+search.</p>
+
+<p>One number in the generator is worth explaining, because it looks like a bug and is not. A path counts as
+clear when an obstacle leaves 0.7 of the room the moving body really needs, rather than all of it
+(<code>CandidatePlan.grazeClearance</code>). Carrom is played on a packed board: nineteen coins start out
+touching, a coin leaving a cluster shoves its neighbours aside, and the striker cannot reach a coin in a
+cluster without grazing the ones beside it. Insisting on the full clearance rejects every shot there is. The
+error is deliberately on the permissive side &mdash; a shot that will not work is thrown out by the simulator a
+millisecond later, whereas a shot wrongly refused is never tried at all.</p>
+
+<h3>Robot difficulty</h3>
+<p><code>lib/core/ai/difficulty.dart</code> holds the table and
+<code>lib/core/ai/robot_player.dart</code> plays to it. A difficulty is <strong>three</strong> separate ways to
+be weak, and they give the robot quite different characters:</p>
+<table>
+  <tr><th>Difficulty</th><th>Candidates</th><th>Picks from</th><th>Angle noise</th><th>Power noise</th></tr>
+  <tr><td>Easy</td><td>~150</td><td>top 40%</td><td>&plusmn;4&deg;</td><td>&plusmn;15%</td></tr>
+  <tr><td>Medium</td><td>~400</td><td>top 10%</td><td>&plusmn;1.8&deg;</td><td>&plusmn;8%</td></tr>
+  <tr><td>Hard</td><td>~900</td><td>the best</td><td>&plusmn;0.6&deg;</td><td>&plusmn;3%</td></tr>
+</table>
+<p>A <strong>narrow search</strong> means the robot never sees the good shot &mdash; the beginner who misses the
+rebound. A <strong>loose pick</strong> means it sees the good shot and plays a worse one &mdash; the player with
+no judgement. <strong>Noise</strong> means it picks the right shot and mis-hits it &mdash; the player whose
+hands are not steady. Easy is weak in all three ways, because a robot weak in only one is recognisably a machine
+with a handicap. Each is a separate field on <code>RobotProfile</code>, so you can make an opponent that sees
+everything and still fumbles it, or one with a steady hand and no sense.</p>
+
+<p>Each tier's candidate count is the exact product of its own <code>CandidatePlan</code> rather than a quota
+applied afterwards, so widening a tier means looking at more aims &mdash; which is what actually makes the robot
+see more of the board.</p>
+
+<h4>The seed</h4>
+<p><code>RobotPlayer</code> takes a seed, and never creates one of its own. Everything about a stroke &mdash;
+which shot it picks, how far it misses, how long it appears to think &mdash; is a pure function of the seed, the
+stroke number and the search result. The same seed replays the same game, which is what makes a robot's turn
+reproducible in a test and in a bug report.</p>
+<p>If you add a feature where two devices watch the same game, pass the seed between them and both will see the
+robot play identically. That only works because each stroke draws from its own generator rather than from one
+long stream; a stroke can therefore be recomputed on its own, without replaying the ones before it.</p>
+
+<h3>Playing the robot</h3>
+<p>Solo Match asks two questions &mdash; which rules, then how strong a robot &mdash; and then deals the board.
+The player shoots from the near baseline and the robot from the far one, as Section 7.1 seats them.</p>
+
+<p>What the player watches is deliberate. The robot <strong>slides the striker</strong> into the spot it chose
+and then <strong>pulls back</strong> to the power it chose, because a shot that appeared out of nowhere would be
+indistinguishable from the game cheating: the slide says where it is shooting from and the pull says how hard,
+which is everything you would read from an opponent's hands at a real board. Both are drawn by exactly the code
+that draws the player's own shot &mdash; <code>AimState.pulled</code> turns a shot back into the drag that would
+have produced it &mdash; so the two can never show different things.</p>
+
+<p>The timings live in <code>lib/game/config/robot_config.dart</code>: the slide, the pull, and a short beat at
+full stretch before it lets go. The thinking pause itself is Section 8's, on <code>RobotProfile</code>.</p>
+
+<p><strong>The search and the thinking pause run together.</strong> The robot starts searching the moment the
+table passes to it and the pause is measured from that same moment, so a search that takes a second eats into a
+pause that was going to be a second and a half rather than adding to it. This matters on a phone, where a Hard
+search is the slowest thing the game does. If you widen <code>CandidatePlan</code> past the pause, the robot
+simply plays as soon as it is ready.</p>
+
+<p>The robot is <strong>not</strong> timed. The turn clock is for a person deciding; a robot cannot stall, and a
+countdown it could lose to its own search would be a foul nobody could have prevented. Its avatar shows a sweep
+while it is working instead of a ring.</p>
+
+<h3>Pausing, the result and a rematch</h3>
+<p>The pause button is the only way out of a game, so leaving is always deliberate rather than a mis-tap on a
+back arrow &mdash; the Android back gesture opens the pause menu too. Pausing stops the Flame engine, which
+stops the turn clock with it: the clock is only ever advanced from the game's <code>update</code>, so there is
+no second thing to remember to pause. The same is true when the player takes a call or switches apps, because
+Flame pauses the engine when the app is backgrounded, so nobody loses a turn to a notification.</p>
+
+<p>The result panel shows as soon as the rules declare the game over. In Tournament it shows the board points
+of the spec &mdash; one per coin the loser left, plus three for the queen if the winner covered her, display
+only &mdash; and in Scramble the two final scores. Both are produced by <code>resultSummary</code> in
+<code>lib/game/overlays/result_overlay.dart</code>, a pure function, so the wording and the arithmetic are
+tested without building a widget. Rematch lays the board out again from the opening arrangement without
+leaving the screen; the pause menu offers the same thing as "Start again".</p>
+
+<p><strong>Every sentence those two show is in one file</strong>,
+<code>lib/shared/utils/game_strings.dart</code>. <code>resultSummary</code> and
+<code>turnMessage</code> decide <em>which</em> line to show and never build one: they are handed a
+<code>GameStrings</code> and ask it. If you want "Ana wins" to read differently, or the middle dot between a
+foul and the next player to be something else, change it there and both the board and the result panel
+follow.</p>
+
+<p>The reason it is shaped that way is translation. Each method returns a <strong>whole sentence with its
+values as arguments</strong>, never a fragment glued to another fragment, because word order is a property of
+a language — a line built as <code>'$foul · $name to play'</code> can be translated into English and only
+approximated into anything else. <code>test/game/game_strings_test.dart</code> holds every method to the rule
+that matters here: whatever values a sentence is given have to appear in what it returns, so a wording that
+quietly loses a player's name fails a test. It asserts presence rather than a count, deliberately, because a
+language may well mention a number once where English mentions it twice.</p>
+
+<p>Leaving a local game costs nothing, so neither menu warns before it. That changes when the prize tables
+arrive: an entry fee has been paid by then, and quitting is a loss.</p>
+
+<h3>Settings</h3>
+<p>Settings are a value object in <code>lib/core/settings/game_settings.dart</code> with a JSON round trip,
+stored under one key by <code>StorageService</code> and exposed through <code>settingsProvider</code> in
+<code>lib/services/settings_provider.dart</code> &mdash; the same pattern as the wallet. A damaged entry falls
+back to the defaults rather than throwing, so a corrupt preference can never stop the game opening.</p>
+
+<p>Seven settings: the language, turning the board round, Sound, Vibration, the aim guide, the turn timer
+and the time allowed for each shot. There is no music toggle, because there is no music track &mdash; a stored field
+nothing reads is a field that quietly rots, so it goes in when there is something for it to control. Adding
+one means a field on <code>GameSettings</code>, a setter on <code>SettingsNotifier</code> and a row on the
+settings screen.</p>
+
+<h3 id="profile">The player's name and avatar</h3>
+
+<p>The first row of Settings opens a <em>Profile</em> screen
+(<code>lib/features/profile/profile_screen.dart</code>) where a player types a name and taps a face. Both are
+optional: a player who never opens it is called <em>Player 1</em> and wears their own initials, which is
+exactly what the game showed before the screen existed.</p>
+
+<p>The model is <code>PlayerProfile</code> (<code>lib/core/profile/player_profile.dart</code>) — a name and an
+avatar index, stored under the <code>profile</code> key with the same JSON round trip as the wallet. Two
+details are worth knowing before you change anything:</p>
+
+<ul>
+  <li><strong>An unset name is the empty string, not <code>'Player 1'</code>.</strong> The display fallback
+    lives in the interface layer as <code>kDefaultPlayerName</code>
+    (<code>lib/shared/utils/player_display.dart</code>), because <code>lib/core/</code> must not hold a
+    user-facing English sentence. Change the name a player is called by default there, in one place.</li>
+  <li><strong>The name is stored on every keystroke</strong>, not on submit. A player who types a name and
+    taps Back has said what they want to be called. Names are trimmed, internal whitespace is collapsed, and
+    the length is capped at 20 <em>code points</em> rather than code units, so an emoji costs one and a
+    surrogate pair is never cut in half.</li>
+</ul>
+
+<p>There are <strong>forty-nine</strong> avatars: entry 0 is the player's initials, and entries 1 to 48 are a
+drawn symbol on a coloured disc. Forty-eight is arithmetic rather than taste. An avatar is a pair taken from
+two lists of deliberately different lengths — twelve symbols in <code>AvatarMotif</code> and the sixteen
+colours <code>AvatarPalette</code> already had for the robots — so the map from an index to the pair repeats
+only after <code>lcm(12, 16) = 48</code>:</p>
+
+<pre><code>// lib/shared/widgets/avatar_catalogue.dart
+symbol = m % 12        // AvatarMotif.count
+colour = m % 16        // AvatarPalette.colours.length
+static const int motifCount = 48;   // lcm of the two</code></pre>
+
+<div class="warn">
+  <p>If you add or remove a symbol or a colour, <strong>recompute <code>motifCount</code></strong>. It is the
+  least common multiple of the two list lengths, and a larger number silently ships two avatars that look
+  identical. <code>test/profile/avatar_catalogue_test.dart</code> recomputes that least common multiple from
+  the two lists and asserts <code>motifCount</code> equals it, so getting it wrong fails a test rather than
+  reaching a player.</p>
+</div>
+
+<p>Callers never ask for a colour and a symbol separately: <code>AvatarCatalogue.lookFor</code> returns one
+<code>AvatarLook</code>, so the HUD, the settings row and the picker cannot each answer half the question. The
+fallback disc colour is passed <em>in</em> rather than chosen by the catalogue, because it belongs to the seat
+— maple for the near player, walnut for the far one.</p>
+
+<p><strong>One profile, not one per seat.</strong> In Pass &amp; Play the second seat keeps its default name
+and initials, and the robot keeps <code>AI</code>. A device has one owner. If you want a second stored
+identity, <code>GameLayout</code> already takes the near seat's initials as a parameter, so the change is
+confined to the screen that builds it.</p>
+
+<p>There is deliberately <strong>no avatar from a photo</strong> on the device. It was planned and dropped:
+a gallery picker costs a package with native code on both platforms, an iOS photo-library usage string, a
+disclosure in your privacy policy and an extra Play Data safety declaration — for a 46-pixel disc that
+already has forty-nine faces. If you add one anyway, those four obligations are yours to meet.</p>
+
+<h2 id="economy">Economy &amp; prize tables</h2>
+
+<p>Coins are virtual, stored on the device, and have no real-world value. New players start with 1,000.</p>
+
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/daily-reward.png" alt="The daily reward screen showing a seven-day streak calendar"
+         loading="lazy">
+    <figcaption>The seven-day streak, the free refill for a player who has run dry, and the rewarded
+    video — all three coin sources on one screen.</figcaption>
+  </figure>
+</div>
+
+<h3>Prize tables</h3>
+<p><code>lib/core/economy/prize_tables.dart</code> defines the 12 tables — number, entry cost, prize, game
+mode and robot difficulty. Add, remove or reprice tables by editing that list. Tables unlock progressively:
+a player unlocks the next one by winning at the previous table, or by holding at least three times its entry
+cost.</p>
+
+<p><strong>The names are not in that file.</strong> A table name is text a player reads, so it lives in
+<code>lib/l10n/app_en.arb</code> under the keys <code>tableQualifier</code> &hellip;
+<code>tableHallOfFame</code>, and <code>prizeTableNames</code> in
+<code>lib/shared/utils/core_labels.dart</code> is the list that maps a table's number to its key. Rename a
+table by editing the ARB; add a table by adding a key, the matching entry to that list, and a translation to
+every finished <code>.arb</code>. A table with no name throws rather than guessing, and
+<code>test/app/core_labels_test.dart</code> fails first, naming the number.</p>
+
+<p>The stock ladder runs Qualifier, Club Night, Town League, District Cup, City Open, Regional Open, National
+Open, Invitational, Masters Table, Grand Prix, Champion’s Table, Hall of Fame. The names are meant to read as
+one season, so a player can tell roughly how far up they are from the name alone. If you rebrand, keeping
+that sense of progression matters more than the particular words.</p>
+
+<h3>Entries, prizes and walking out</h3>
+<p>The entry is taken when the <strong>match starts</strong>, not when the table is chosen &mdash; a player who
+backs out of matchmaking has paid nothing. A win pays the prize and records the table, which opens the one
+above it. A loss pays nothing: the entry is already gone.</p>
+
+<p><strong>Quitting mid-match is a loss</strong>, as Section 9.2 requires, and the pause menu says so before it
+lets the player go. A rematch is a new match and pays a second entry; a player who cannot afford one is told
+rather than given a free game.</p>
+
+<p>A drawn game &mdash; possible in Scramble &mdash; <strong>returns the entry</strong>. The spec is silent on
+it, and a draw is explicitly not a loss, so keeping the entry for a game nobody won would be the house taking
+coins for nothing. That is one line in <code>PrizeSettlement.settle</code>
+(<code>lib/core/economy/match_settlement.dart</code>) if you play it differently.</p>
+
+<p>All of the arithmetic is in that one file and is pure, so you can change what a table pays without going
+anywhere near the board. <code>PrizePurse</code> (<code>lib/features/game/prize_purse.dart</code>) is the thin
+layer that commits a settlement to the wallet and the ladder, and it guarantees a match settles only once.</p>
+
+<h3>Starting balance and saved data</h3>
+<p>A new player begins with 1,000 coins. Change that one constant to change the whole economy's starting
+point:</p>
+<pre><code>// lib/core/economy/wallet.dart
+static const int startingBalance = 1000;
+static const int lowBalanceThreshold = 50;</code></pre>
+
+<p>Everything the game remembers — wallet, settings, the player's own name and avatar, owned equipment,
+prize-table progress and daily-reward streak —
+is stored on the device through <code>shared_preferences</code>, one JSON object per feature under the keys
+listed in <code>StorageKeys</code> (<code>lib/services/storage_service.dart</code>). Nothing is sent anywhere,
+and there is no account to sign in to.</p>
+
+<div class="note">
+  <p>Clearing the app's data from Android settings, or reinstalling, resets a player to the starting balance.
+  That is intentional: there is no server to restore from. If you want progress to survive a reinstall you
+  would need to add your own cloud save, which is outside the scope of this item.</p>
+</div>
+
+<h3>Coin sources</h3>
+<table>
+  <tr><th>Source</th><th>Amount</th><th>Limit</th></tr>
+  <tr><td>Starting balance</td><td>1,000</td><td>Once, on first launch</td></tr>
+  <tr><td>Daily reward streak</td><td>100 → 1,000 over 7 days</td><td>Once per day; a missed day resets the streak</td></tr>
+  <tr><td>Rewarded video</td><td>250</td><td>5 per day</td></tr>
+  <tr><td>Out-of-coins refill</td><td>500</td><td>When the balance drops below 50, once every 4 hours</td></tr>
+</table>
+
+<h3>Daily reward and the out-of-coins refill</h3>
+
+<p>Two free coin sources, both on the <strong>Daily reward</strong> screen, reachable from the home screen or
+by tapping the coin badge. Each is a small immutable model in <code>lib/core/economy/</code> with a Riverpod
+notifier beside the storage it uses:</p>
+
+<table>
+  <tr><th>Feature</th><th>Model</th><th>Notifier</th><th>Storage key</th></tr>
+  <tr><td>Seven-day streak</td><td><code>daily_reward.dart</code></td><td><code>daily_reward_provider.dart</code></td><td><code>daily_reward</code></td></tr>
+  <tr><td>Out-of-coins refill</td><td><code>coin_refill.dart</code></td><td><code>coin_refill_provider.dart</code></td><td><code>coin_refill</code></td></tr>
+</table>
+
+<p>Everything either of them pays is a constant, and the screen's wording is built from those constants rather
+than written out, so changing a number does not leave a panel saying something untrue:</p>
+<pre><code>// lib/core/economy/daily_reward.dart
+static const List&lt;int&gt; ladder = [100, 150, 200, 300, 400, 500, 1000];
+
+// lib/core/economy/coin_refill.dart
+static const int coins = 500;
+static const Duration cooldown = Duration(hours: 4);</code></pre>
+
+<p>The ladder may be any length &mdash; <code>runLength</code> follows the list, and the calendar lays out the
+first four days on one row and the rest on the next. The refill also reads
+<code>Wallet.lowBalanceThreshold</code> for how poor a player has to be to qualify, so that threshold lives in
+one place and the coin badge turns red at exactly the point the refill becomes available.</p>
+
+<p><strong>A day is a calendar date, not twenty-four hours.</strong> A player who collects at five to midnight
+and comes back after breakfast has come back the next day, and gets the next day's reward. A missed day puts
+the run back to day one, and the screen says so rather than leaving the player to notice the calendar has
+reset. Finishing the run starts it again at day one rather than paying 1,000 for ever.</p>
+
+<div class="note">
+  <p><strong>Device clocks.</strong> Both features read the clock through <code>clockProvider</code>
+  (<code>lib/services/clock_provider.dart</code>) rather than calling <code>DateTime.now</code> directly,
+  which is what lets the tests sit on any date they like. A stored time in the <em>future</em> &mdash; the
+  mark of a device clock that was wrong and has since been corrected &mdash; is treated as a break in the run
+  and a cooldown that has expired, never as a reason to refuse. A cooldown held on the device cannot be
+  enforced against a clock the player controls in any case, and the outcome worth avoiding is an honest
+  player locked out of the only coins they can reach.</p>
+</div>
+
+<p>A player who is short of coins and waiting out the cooldown is also offered the refill
+<strong>immediately in exchange for a rewarded video</strong>. The video buys the wait, not a second
+helping: the four hours restart exactly as they do for a free refill, so five videos cannot become five
+refills. See the AdMob section for the video itself.</p>
+
+<h3>Opponent names and avatars</h3>
+<p>The matchmaking screen rolls through the roster in
+<code>lib/core/economy/robot_names.dart</code> &mdash; 66 robots across Bangladesh, India, Sri Lanka, Nepal and
+Pakistan. Edit the per-country name lists to suit your market; the avatar numbering is worked out from the
+list, so adding or removing names needs nothing else changed.</p>
+
+<p>A robot is a name, a country and one of sixteen faces. The face is fixed to the name rather than drawn at
+random, so a player who meets the same opponent twice meets the same one. Faces are a colour and an initial,
+drawn rather than loaded from assets &mdash; the sixteen colours are in
+<code>lib/shared/widgets/avatar_palette.dart</code>, and flags are emoji rather than images, so the whole
+roster costs nothing to ship.</p>
+
+<p>Which opponent appears, and every shot that opponent will mis-hit, both come from a single seed drawn when
+matchmaking starts. That means a match is described completely by its table and its seed, which is what makes
+one reproducible in a bug report.</p>
+
+<h3>Climbing the ladder</h3>
+<p>A table opens when the player has <strong>won at the table below it</strong>, or when they are
+<strong>holding three times its entry</strong>. Either is enough. The first table is always open, so a player
+who has lost everything can still get back in.</p>
+
+<p>Those are two different questions from <em>can this player pay the entry right now</em>, and the card says
+so in different words: a shut table tells you what would open it, and an open one you cannot afford tells you
+what it costs. Keep that distinction if you edit the wording &mdash; telling a player to go and win somewhere
+else when all they need is more coins sends them off for nothing.</p>
+
+<p>Which tables have been won is stored under <code>StorageKeys.prizeTables</code>. Note that the wealth route
+reads the <em>most the wallet has ever held</em>, not today's balance: a table opened by a balance stays open
+once that balance is spent, so paying an entry can never shut the table you are sitting at. The entry itself
+still has to be affordable, which is what keeps a broke player out of the Hall of Fame.</p>
+
+<div class="note">
+  <p><strong>Store policy.</strong> Because entry costs and prizes could be mistaken for gambling, the
+  interface uses the words <em>entry</em> and <em>prize</em> throughout, never <em>bet</em> or
+  <em>stake money</em>, and coins can never be purchased. Keep that language if you edit the strings.</p>
+</div>
+
+<h2 id="shop">Equipment shop</h2>
+
+<p>Fifteen items across three categories, bought with coins and purely cosmetic. One item is in play in each
+category at all times, and the cheapest in each is free, so a new player always has a striker, a board and a
+set of coins.</p>
+
+<p>Everything here is built: the catalogue, the buy and equip flow, persistence, and the skins themselves.
+What a player has equipped is what they play on — the board, its frame and markings, the striker, the coins
+on the board and the coins stacked in the trays beside each seat.</p>
+
+<div class="shots">
+  <figure class="shot">
+    <img src="assets/img/shop.png" alt="The equipment shop showing striker cards with prices"
+         loading="lazy">
+    <figcaption>The shop. Each card draws the item itself rather than a category icon, using the same
+    painter the board uses, so the swatch and the board cannot disagree.</figcaption>
+  </figure>
+</div>
+
+<h3>The catalogue</h3>
+
+<p>Every item lives in <code>lib/core/economy/shop_catalog.dart</code>. This is the only place prices are
+set. The names and the one-line descriptions are <em>not</em> there: they are text a player reads, so they
+live in <code>lib/l10n/app_en.arb</code> and are mapped to an item's <code>id</code> by
+<code>lib/shared/utils/core_labels.dart</code>.</p>
+
+<table>
+  <tr><th>Category</th><th>Items, cheapest first</th><th>Prices</th></tr>
+  <tr><td>Strikers</td><td>Rookie, Slate, Crimson, Jade, Brass, Eclipse</td><td>0, 1,500, 4,000, 7,000, 11,000, 15,000</td></tr>
+  <tr><td>Boards</td><td>Maple, Walnut, Rosewood, Marble, Midnight</td><td>0, 3,000, 8,000, 14,000, 20,000</td></tr>
+  <tr><td>Coin sets</td><td>Standard, Pearl, Cobalt, Regal</td><td>0, 3,000, 7,000, 12,000</td></tr>
+</table>
+
+<p>Owning everything costs <strong>105,500</strong> coins. The top prize table nets 5,000 a win, so the shop
+is a long tail for an experienced player rather than a second game to grind. If you re-price anything, the
+test <code>owning everything costs 105,500 coins</code> in
+<code>test/economy/shop_catalog_test.dart</code> will fail and tell you the new total — update it
+deliberately rather than deleting it.</p>
+
+<h3>Adding, removing or re-pricing an item</h3>
+
+<p>It takes three steps, because what the item <em>is</em> and what it is <em>called</em> live apart. First,
+add an entry to the right list in <code>ShopCatalog</code>:</p>
+
+<pre><code>EquipmentItem(
+  id: 'striker_onyx',                  // stable, never shown to a player
+  category: EquipmentCategory.striker,
+  price: 9000,
+)</code></pre>
+
+<p>Second, add its name and description to <code>lib/l10n/app_en.arb</code> — and to every finished
+translation — then run <code>flutter gen-l10n</code>:</p>
+
+<pre><code>"itemStrikerOnyx": "Onyx",
+"itemStrikerOnyxDescription": "Black glass, gold flecked.",</code></pre>
+
+<p>Third, map the id to those keys in <code>lib/shared/utils/core_labels.dart</code>:</p>
+
+<pre><code>'striker_onyx': l10n.itemStrikerOnyx,            // in _equipmentNames
+'striker_onyx': l10n.itemStrikerOnyxDescription, // in _equipmentDescriptions</code></pre>
+
+<p>Miss the third step and the shop throws an <code>ArgumentError</code> naming the id rather than drawing a
+nameless card — and <code>test/app/core_labels_test.dart</code> fails before you ever see it.</p>
+
+<p>Four rules the tests enforce, so you will hear about it if one is broken:</p>
+
+<ul>
+  <li><strong>The <code>id</code> is what storage remembers,</strong> and it is deliberately separate from
+  the name. Rename or translate an item freely in the ARB; changing its <code>id</code> is what
+  orphans a purchase a player has already paid for.</li>
+  <li><strong>No two items in a category may share a name,</strong> because there is nothing else on a card
+  to tell them apart but the price.</li>
+  <li><strong>Exactly one free item per category.</strong> It is what a new player starts with and what an
+  unreadable saved choice falls back to, so a category of entirely paid items would leave a player with no
+  board to play on.</li>
+  <li><strong>Prices rise within a category,</strong> so the shop reads left to right as a ladder.</li>
+</ul>
+
+<p>Removing an item is safe. A saved id the catalogue no longer recognises is kept in storage but stops being
+used, and the player falls back to the free item of that category — so a removal costs a skin, not a crash,
+and putting the item back restores the purchase.</p>
+
+<p><strong>A new item also needs a palette,</strong> or it will be drawn exactly like the free item of its
+category. See <a href="#skins">How an item looks</a> below. A test fails if any item in the catalogue has no
+palette of its own, so you will not ship a 9,000-coin striker that looks like the free one by accident.</p>
+
+<h3 id="skins">How an item looks</h3>
+
+<p>Colours are not held by the drawing code. Each Canvas component is <em>handed</em> a palette, which is what
+makes a skin a value you can edit rather than a change spread across ten files. The palettes live in
+<code>lib/game/skins/</code>, one file per category:</p>
+
+<table>
+  <tr><th>File</th><th>Type</th><th>What it colours</th></tr>
+  <tr>
+    <td><code>board_skin.dart</code></td><td><code>BoardSkin</code></td>
+    <td>The frame, the playing surface and its grain, the markings, the pocket rims and holes, and the
+    background the board sits on</td>
+  </tr>
+  <tr>
+    <td><code>striker_skin.dart</code></td><td><code>StrikerSkin</code></td>
+    <td>The striker's face, rim and target ring</td>
+  </tr>
+  <tr>
+    <td><code>coin_skin.dart</code></td><td><code>CoinSkin</code></td>
+    <td>The white, black and queen coins — face and rim for each</td>
+  </tr>
+  <tr>
+    <td><code>equipment_skins.dart</code></td><td><code>EquipmentSkins</code></td>
+    <td>The three above together. <code>EquipmentSkins.forInventory()</code> turns what the player has
+    equipped into the palettes a game is played with</td>
+  </tr>
+</table>
+
+<p>A palette is matched to an item by its <code>id</code>, so to add one, add a <code>const</code> beside the
+others and list it in that file's <code>all</code>:</p>
+
+<pre><code>static const StrikerSkin onyx = StrikerSkin(
+  id: 'striker_onyx',          // the catalogue id, exactly
+  face: Color(0xFF2B2B33),
+  edge: Color(0xFF0D0D11),
+  ring: Color(0xFFD8B24A),
+);</code></pre>
+
+<p>Two tests guard the pairing in both directions: every item the shop sells must have a palette carrying its
+own id, and no palette may belong to an id the shop does not sell — the second is how a rename done on only
+one side gets caught. Two more check a skin cannot make the board unreadable: the markings must contrast with
+both ends of the surface gradient, and a coin set must keep a strong light-dark split. Edit the colours
+freely; if a board's markings vanish into its surface, the suite says so by name.</p>
+
+<p>The same palettes draw the swatch on each shop card, through the same painting code as the board, so the
+window and the board cannot drift apart.</p>
+
+<h4>The optional striker perk</h4>
+
+<p>Section 9.5 of the design allows one non-cosmetic perk: a longer aim guide on premium strikers.
+<strong>It ships switched off,</strong> so the shop sells nothing but looks — which is what the item
+description claims, and what a store reviewer will read. The toggle is a single constant in
+<code>lib/game/config/input_config.dart</code>:</p>
+
+<pre><code>const bool kStrikerPerkEnabled = false;</code></pre>
+
+<p>Each striker already carries its own <code>aimGuideScale</code>, rising from 1.0 on the free Rookie to 1.3
+on Eclipse, so switching the constant to <code>true</code> gives you a working ladder with no other edit.
+Note that it changes how the game plays, not just how it looks: the longer guide still stops at the cushion,
+but a paying player sees further than a new one &mdash; both along the aim line and in how far ahead the aim
+guide will mark a coin.</p>
+
+<h3>Buying and equipping</h3>
+
+<p>A card shows one of four states: <em>equipped</em>, <em>owned</em> with an Equip button, <em>buyable</em>
+with the price on the button, or <em>unaffordable</em> with a note saying how many coins are needed. The last
+two are kept apart on purpose: an unaffordable item and an unchosen one are different problems with
+different answers.</p>
+
+<p>Buying asks for confirmation first, naming the item, the price and the balance it will leave — a purchase
+is the one thing in the menus that spends coins and cannot be undone. Buying also equips, since a player who
+has just paid for a striker wants to use it; the item it replaced stays owned, so going back is one tap.</p>
+
+<p><code>ShopNotifier.buy</code> in <code>lib/services/shop_provider.dart</code> is the only code that
+spends coins here. It checks ownership and the balance itself and returns what it spent, so a card that is a
+frame out of date cannot charge twice.</p>
+
+<h3>What is stored</h3>
+
+<p>One JSON blob under the <code>shop</code> key (<code>StorageKeys.shop</code>), holding the ids bought and
+the id chosen in each category:</p>
+
+<pre><code>{"owned":["striker_slate","board_walnut"],
+ "equipped":{"striker":"striker_slate","board":"board_walnut"}}</code></pre>
+
+<p>Free items are not listed — they are owned by definition. A corrupt or missing blob costs the player
+their skins and nothing else: they are put back on the free items and the game opens normally.</p>
+
+<h2 id="ads">AdMob setup</h2>
+
+<p>The project ships with Google's official <strong>test</strong> ad unit IDs so you can run it immediately
+without an AdMob account. You must switch to your own IDs before publishing.</p>
+
+<ol class="steps">
+  <li>Create an AdMob account and register your app, then create one <strong>interstitial</strong> and one
+    <strong>rewarded</strong> ad unit. Those are the only two formats the project knows about &mdash; there is no
+    banner, app-open or native unit, and the frequency rules in <code>AdSlot</code> are written around these two.
+    <p>An AdMob app is <strong>per platform</strong>, so shipping to both stores means two AdMob apps and four ad
+    units in total. You can fill in one platform and leave the other on its placeholder: an unconfigured platform
+    asks for an invalid unit and is simply told there is no fill, which earns nothing and is obvious on the first
+    device. <code>AdIds.liveIdsConfiguredFor</code> is what reports a platform ready.</p>
+  </li>
+  <li>Put your unit IDs in <code>lib/services/ad_ids.dart</code> and set <code>kReleaseAds = true</code>.
+    Replace the whole <code>REPLACE_WITH_YOUR_&hellip;</code> string, prefix included &mdash; anything still
+    starting with that prefix counts as unfilled.</li>
+  <li>Replace the test <em>application</em> ID already present in
+    <code>android/app/src/main/AndroidManifest.xml</code> with your own:
+    <pre><code>&lt;meta-data
+    android:name="com.google.android.gms.ads.APPLICATION_ID"
+    android:value="ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY"/&gt;</code></pre>
+  </li>
+  <li>Replace the same ID in <code>ios/Runner/Info.plist</code> under the key
+    <code>GADApplicationIdentifier</code>.</li>
+  <li>Host an <code>app-ads.txt</code> file at the root of the developer website listed in your store entry, so
+    that <code>https://yourdomain.com/app-ads.txt</code> returns it as plain text. It is one line, and the last
+    field is AdMob's own identifier &mdash; the same for every publisher:
+    <pre><code>google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0</code></pre>
+    <p>Your <code>pub-</code> number is the middle of your application ID: <code>ca-app-pub-XXXX~YYYY</code>
+    becomes <code>pub-XXXX</code>. AdMob crawls the file about once a day, so the status stays <em>Not found</em>
+    for a while after you upload it. Ads serve either way &mdash; an unverified app only loses bid value.</p>
+  </li>
+</ol>
+
+<div class="warn">
+  <p><strong>An application ID is not an ad unit ID.</strong> The application ID that goes in the manifest and the
+  <code>Info.plist</code> is <code>ca-app-pub-&hellip;<strong>~</strong>NNNN</code>, with a tilde. An ad unit ID is
+  <code>ca-app-pub-&hellip;<strong>/</strong>NNNN</code>, with a slash. Both halves must also carry the
+  <em>same</em> <code>pub-</code> number: a unit requested under a different publisher's application ID never
+  fills, and nothing on screen tells you why. <code>test/app/admob_identity_test.dart</code> checks all of this
+  for you, so run <code>flutter test</code> after editing the IDs.</p>
+</div>
+
+<div class="warn">
+  <p>Never ship with the test IDs in place, and never click your own live ads. Both will get an AdMob account
+  suspended.</p>
+</div>
+
+<div class="warn">
+  <p><strong>Do not delete the application ID meta-data.</strong> The Google Mobile Ads SDK reads it from a
+  <code>ContentProvider</code> during process start-up, before any Dart code runs. If the entry is missing or
+  malformed the app crashes the instant it is opened, with <code>IllegalStateException: Missing application
+  ID</code>. To strip ads out of the project entirely, remove the <code>google_mobile_ads</code> dependency as
+  well, not just the manifest entry.</p>
+</div>
+
+<h3>How an ad is loaded</h3>
+
+<p>Three files, in layers. <code>lib/services/ad_ids.dart</code> holds the unit IDs and the
+<code>kReleaseAds</code> flag. <code>lib/services/ads_service.dart</code> holds an <code>AdSlot</code> per
+unit, which keeps one ad loaded, retries a failed request and fetches the next the moment one is spent.
+<code>lib/services/admob_loader.dart</code> is the only file in the project that imports
+<code>google_mobile_ads</code>: everything above it works through a small <code>FullScreenAd</code>
+interface, which is what lets the loading rules be unit tested without an AdMob account.</p>
+
+<p>Two constants on <code>AdSlot</code> are worth knowing about if you want to change how hard the app tries:</p>
+
+<table>
+  <tr><th>Constant</th><th>Default</th><th>What it does</th></tr>
+  <tr><td><code>maxAttempts</code></td><td>3</td>
+      <td>How many times one preload asks before giving up. It gives up rather than retrying for ever, so a
+      player with no signal is not paying for a request every few seconds all session. The next preload
+      starts a fresh set of attempts.</td></tr>
+  <tr><td><code>firstRetryDelay</code></td><td>4&nbsp;seconds</td>
+      <td>The wait before the first retry, doubling after that — 4s, then 8s.</td></tr>
+</table>
+
+<p>Nothing is fetched at start-up. An ad requested and never shown counts against the match rate AdMob pays
+on, and most sessions never ask for a rewarded video, so each slot is loaded by the screen that is about to
+need it.</p>
+
+<p>When no ad is loaded, <code>AdSlot.show()</code> returns false rather than throwing or waiting, and the
+caller shows the "Video not available, try again later" message. A false always means the player saw
+nothing, so a rewarded video that returns false has earned nothing.</p>
+
+<h3>Where ads appear</h3>
+<ul>
+  <li><strong>Interstitial</strong> — only after a match against the robot, at most once every two matches and
+    never less than three minutes apart. Never during play, and never after a local 2-player game.</li>
+  <li><strong>Rewarded video</strong> — only when the player taps to watch one, always behind a confirmation
+    dialog, with coins granted strictly in the reward callback.</li>
+</ul>
+<h3>The interstitial caps</h3>
+
+<p>Two limits, and both must be satisfied before an ad appears. They live in
+<code>lib/core/ads/interstitial_cap.dart</code>:</p>
+
+<table>
+  <tr><th>Constant</th><th>Default</th><th>What it does</th></tr>
+  <tr><td><code>matchesBetweenAds</code></td><td>2</td>
+      <td>Robot matches that must finish between two ads. A new player therefore finishes two matches
+      before seeing anything.</td></tr>
+  <tr><td><code>minimumGap</code></td><td>3&nbsp;minutes</td>
+      <td>The shortest time allowed between two ads, whatever the match count says. This is what stops a
+      run of very short games being interrupted twice in a minute.</td></tr>
+</table>
+
+<p>Both are stored, under the <code>interstitial</code> key, so closing the app is neither a way to be
+shown an ad sooner nor a way to avoid one.</p>
+
+<p>An ad appears at a break — when the player leaves a finished match, or asks for a rematch — and never
+while a game is on screen. A match the player abandoned part-way is not counted and is never followed by
+an ad: quitting is scored as a loss, but it is not a match anybody sat through. A local two-player game
+neither counts nor shows, as Section 10 requires.</p>
+
+<p>If you want ads to be rarer, raise either constant; the pair are independent and the stricter one
+wins. Setting <code>matchesBetweenAds</code> to a very large number is the practical way to turn
+interstitials off without removing the code.</p>
+
+<h3>The rewarded video</h3>
+
+<p>A video is worth 250 coins, and a player may watch five a day — 1,250 coins, which is worth comparing
+against the prize-table entries: a full day of videos buys a seat at the City Open and no more. A player can
+keep themselves at the board with videos; they cannot climb the ladder with them. Both numbers are in
+<code>lib/core/ads/rewarded_allowance.dart</code>:</p>
+
+<table>
+  <tr><th>Constant</th><th>Default</th><th>What it does</th></tr>
+  <tr><td><code>RewardedVideo.coins</code></td><td>250</td><td>What one video pays</td></tr>
+  <tr><td><code>RewardedVideo.dailyLimit</code></td><td>5</td><td>How many may be watched in a day</td></tr>
+</table>
+
+<p>A day is a <em>calendar</em> day, the same reading the daily reward streak takes and deliberately the
+same function: both are "once a day" rules on the same screen, and a player whose streak had rolled over
+while their video allowance had not would be looking at two different answers to what day it is.</p>
+
+<p>A video is always behind a confirmation — "Watch a short video for 250 coins?" — and only ever starts
+from a tap that says so. Coins are credited inside the SDK's reward callback and nowhere else, so a video
+closed half way through pays nothing. Such a video also costs the player none of their five: charging an
+allowance for an ad that paid nothing would be taking something in exchange for nothing.</p>
+
+<p>Videos are offered in two places, both on the coin screen:</p>
+<ul>
+  <li><strong>250 coins</strong>, any time, five a day.</li>
+  <li><strong>The out-of-coins refill, immediately.</strong> A player who is short of coins and waiting out
+    the four-hour cooldown can watch a video and have the 500 now. The video buys the <em>wait</em>, not a
+    second helping: the cooldown restarts exactly as it does for a free refill, so five videos cannot
+    become five refills. Offered only while both halves of the Section 9.4 rule apply — a low balance and a
+    cooldown still running.</li>
+</ul>
+
+<p>The free refill is listed above the video on that screen, which is not the order the specification
+lists them in. A player who is out of coins should be shown the thing that costs them nothing before the
+thing that costs them thirty seconds.</p>
+
+<p>When nothing is loaded the player is told "Video not available, try again later." and nothing is
+charged. If you want videos to be rarer or worth more, change the two constants above; nothing else reads
+those numbers, and the copy in the panels and the confirmation is assembled from them.</p>
+
+
+
+<h3>Consent in GDPR regions</h3>
+
+<p>The app uses Google's User Messaging Platform, which ships inside <code>google_mobile_ads</code> — there
+is no extra dependency. The flow is in <code>lib/services/consent_service.dart</code> and you should not
+need to change it.</p>
+
+<p><strong>One step is yours and the project cannot do it for you:</strong> configure a GDPR message in your
+own AdMob account under <em>Privacy &amp; messaging</em>. Until you do, UMP has no form to show, and players
+in the EEA will see no ads at all — which is the correct behaviour, not a bug.</p>
+
+<p>Consent is gathered the first time an ad is requested, not at launch, and <strong>no ad is ever requested
+until the SDK says consent allows it</strong>. That check is a parameter of <code>AdSlot</code>
+(<code>AdGate</code>) rather than something buried in the plugin wrapper, so it is covered by tests: a
+refused gate means no request, is not retried, and a gate that throws is read as a refusal rather than as
+permission.</p>
+
+<p>Note the apparent oddity that <code>MobileAds.initialize()</code> is still called from
+<code>main.dart</code>, before consent. That is deliberate. Initialising the SDK does not request an ad, and
+what Google's EU consent policy governs is the request. If your own legal advice is stricter, move that call
+into the consent flow: it is idempotent and awaited by every request, so the only consequence is that the
+first ad of a session takes a moment longer to arrive.</p>
+
+<p>Where a region requires it, the settings screen grows an <strong>Advertising choices</strong> row that
+reopens Google's form, so a player can change their mind. It is hidden everywhere else, because a privacy
+control that does nothing for the person looking at it is worse than no control.</p>
+
+<h4>Seeing the consent form outside Europe</h4>
+<ol class="steps">
+  <li>Run the app and open the coin screen, or play a match against the robot, so that an ad is requested.
+    Nothing is logged before that, because that is when consent is gathered.</li>
+  <li>In the device log, under the tag <code>UserMessagingPlatform</code>, find
+    <code>Use new ConsentDebugSettings.Builder().addTestDeviceHashedId("…")</code>.</li>
+  <li>Put that string into <code>kConsentTestDeviceIds</code> in
+    <code>lib/services/consent_service.dart</code>, and set <code>kConsentDebugGeography</code> to
+    <code>DebugGeography.debugGeographyEea</code>.</li>
+  <li>Reinstall. That device now behaves as though it were in the EEA. The setting affects listed devices
+    only, so it is harmless to leave in place — but clear it before a release build.</li>
+</ol>
+
+<h3>Remove ads</h3>
+<p>The settings screen carries a panel naming a future one-off purchase to switch off advertising. It is a
+sentence, not a control: there is no in-app purchase code in the project, and a greyed-out switch that can
+never be switched is worse than an honest note. If you do not intend to add the purchase, delete that one
+<code>ComingSoonPanel</code> from <code>lib/features/settings/settings_screen.dart</code>.</p>
+
+<h2 id="languages">Languages</h2>
+
+<p>The game is localised with <strong>Flutter's own tooling</strong> &mdash; <code>flutter_localizations</code>
+from the SDK and <code>gen-l10n</code> &mdash; so there is no third-party localisation package to learn and no
+build step beyond the one <code>flutter pub get</code> already runs.</p>
+
+<p><strong>Thirteen languages ship:</strong> English, Bangla, Arabic, Hindi, Russian, Turkish, German,
+Chinese, Amharic, French, Greek, Spanish and Brazilian Portuguese. 208 sentences each. Nothing is bundled
+to support them &mdash; the platform's own fonts render Bengali, Devanagari, Arabic, Cyrillic, Greek, Han
+and Ethiopic on any current phone, which is why <code>assets/fonts/</code> is empty.</p>
+
+<div class="warn">
+  <p><strong>Read <code>lib/l10n/GLOSSARY.md</code> before editing any translation.</strong> Thirteen words
+  carry the game — striker, coin, queen, cover, baseline, foul and the rest &mdash; and a translator who
+  renders <em>cover</em> as "lid" writes a sentence that reads perfectly and means nothing to a carrom
+  player. The glossary names all thirteen in every language, and
+  <code>test/app/glossary_test.dart</code> holds the translations to it: a term the glossary states and no
+  sentence uses is a failing test.</p>
+  <p>Two of those words are not a matter of taste. <strong>Entry</strong> and <strong>prize</strong> must
+  never become a stake, a wager or a bet in any language: the coins are virtual and cannot be bought,
+  cashed out or transferred, and a store reviewer reads the translation too. The same test refuses a known
+  betting word anywhere in any ARB file.</p>
+</div>
+
+<h3>Adding a language</h3>
+
+<p>Six steps. <strong>Steps 2 to 5 are each caught by a test if you skip them</strong>, and the test says
+which — that was measured by adding a language the lazy way and reading what failed, rather than written
+from memory. Step 1 is checked for its mechanics only: nothing can tell whether you actually translated
+the words. Step 6 is the one to be careful of, and the warning below says why. Japanese, as an example:</p>
+
+<ol>
+  <li><strong>Copy the template and translate the values.</strong> Keep every key and every
+  <code>{placeholder}</code> exactly as it is; the key is what the code asks for and the placeholder is
+  where the number or the name goes.
+  <pre><code>cp lib/l10n/app_en.arb lib/l10n/app_ja.arb</code></pre>
+  Metadata — the <code>@key</code> blocks describing each string — lives only in the template, so you can
+  delete it all from your copy. Keep <code>"@@locale"</code> and change it to your language's code.</li>
+
+  <li><strong>Read the glossary first, and add your language to it.</strong>
+  <code>lib/l10n/GLOSSARY.md</code> names thirteen carrom terms. Decide them once, then translate with
+  them; it is far cheaper than discovering halfway through that <em>cover</em> has been rendered three
+  different ways. Add a section for your language naming all thirteen.</li>
+
+  <li><strong>Name the language in its own language.</strong> Add it to <code>kLanguageNames</code> in
+  <code>lib/shared/utils/locale_choice.dart</code> — <code>'ja': '日本語'</code>, not "Japanese". A picker
+  that lists languages in the language you are already reading is no use to the person who needs it.</li>
+
+  <li><strong>Declare which script it is written in.</strong> Add it to <code>_script</code> in
+  <code>test/app/glossary_test.dart</code> — <code>'ja': 'Han'</code> — and add the range to
+  <code>_scripts</code> if the alphabet is not already there. That test holds every string in a language
+  to its own alphabet, which is the only thing that can catch a character from the wrong one: a Cyrillic
+  <code>о</code> inside a Latin word renders identically and would otherwise ship.</li>
+
+  <li><strong>Hold it complete.</strong> Add <code>'app_ja.arb'</code> to the <code>complete</code> set in
+  <code>test/app/localisation_test.dart</code> once it carries every key. That set is what holds a
+  finished translation to the template for ever; a language left out of it can quietly lose a sentence
+  later and nothing will say so.</li>
+
+  <li><strong>Regenerate and run the tests.</strong>
+  <pre><code>flutter gen-l10n     # or just: flutter pub get
+flutter test</code></pre></li>
+</ol>
+
+<p>Nothing else has a list to keep up to date. The picker and <code>supportedLocales</code> are both
+derived from the files that exist.</p>
+
+<div class="warn">
+  <p><strong>Regenerate after editing an ARB.</strong> The generated Dart in <code>lib/l10n/</code> is what
+  the app actually reads, so an edited <code>.arb</code> changes nothing until <code>flutter gen-l10n</code>
+  runs. <code>test/app/localisation_test.dart</code> fails when the two drift apart, which is the only
+  reason that mistake is not silent.</p>
+  <p><strong>And read what <code>gen-l10n</code> printed.</strong> It reports some problems as plain prose
+  with no error beside them, and then exits having regenerated nothing at all — so a language can sit in
+  <code>lib/l10n/</code> looking perfectly fine and not be in the app. If a new language does not appear in
+  the picker, that is the first thing to check.</p>
+</div>
+
+<h4>Common complaints, and what they mean</h4>
+
+<table>
+  <tr><th>What you see</th><th>What to do</th></tr>
+  <tr>
+    <td><code>Arb file for a fallback, pt, does not exist</code></td>
+    <td>Your language's code carries a country, like <code>pt_BR</code>, and
+    <code>gen-l10n</code> will not run without a base <code>app_pt.arb</code> beside it. Either add the
+    base file or drop the country from the name. Brazilian Portuguese ships here as plain
+    <code>pt</code> for exactly this reason: one file rather than two identical ones, and a phone set to
+    either <code>pt-BR</code> or <code>pt-PT</code> resolves to it.</td>
+  </tr>
+  <tr>
+    <td><code>app_ja.arb is held complete and is missing sentences</code></td>
+    <td>You added it to the <code>complete</code> set before finishing it. Either finish it or take it
+    back out until you have.</td>
+  </tr>
+  <tr>
+    <td><code>app_ja.arb has keys app_en.arb does not</code></td>
+    <td>A misspelt key, or one left over from a sentence the game no longer says.
+    <code>gen-l10n</code> ignores those without a word, so the work would simply go nowhere.</td>
+  </tr>
+  <tr>
+    <td><code>&lt;key&gt; dropped the placeholder &lt;value&gt;</code></td>
+    <td>A <code>{placeholder}</code> did not survive into your translation, so a name or an amount will be
+    missing from that sentence at run time. Check every branch of a plural too — each one needs it.</td>
+  </tr>
+  <tr>
+    <td><code>&lt;screen&gt; overflows in &lt;language&gt;</code></td>
+    <td>The translation is longer than the screen, not wrong. Shorten it, or bound the widget. This is the
+    usual way a translation breaks a layout.</td>
+  </tr>
+  <tr>
+    <td><code>app_ja.arb contains "…", which is a betting word</code></td>
+    <td>See the warning at the top of this section. The coins are virtual, and the game must not describe
+    itself as gambling in any language.</td>
+  </tr>
+  <tr>
+    <td><code>no script declared for ja</code></td>
+    <td>Step 4. Until the language names its alphabet, nothing is checking that its strings stay inside
+    one.</td>
+  </tr>
+  <tr>
+    <td><code>ja ships now — pick a tag the game really lacks</code></td>
+    <td>Only if you add Japanese specifically. One test needs an example of a language the game does
+    <em>not</em> have, and it uses <code>ja</code>; change it to something you have no plans for. It
+    asserts its own example is really absent, which is why it noticed.</td>
+  </tr>
+</table>
+
+<h3>Dropping a language</h3>
+
+<p>Three steps. Only the second is caught by a test, so the third is the one to remember:</p>
+
+<ol>
+  <li>Delete <code>lib/l10n/app_&lt;code&gt;.arb</code>.</li>
+  <li>Remove it from the <code>complete</code> set in <code>test/app/localisation_test.dart</code>,
+  which otherwise fails with <code>app_&lt;code&gt;.arb is held complete and does not exist</code>.</li>
+  <li>Delete the generated <code>lib/l10n/app_localizations_&lt;code&gt;.dart</code>.
+  <strong><code>gen-l10n</code> does not clean up after itself</strong>: the file is left behind,
+  nothing imports it any more, the project still builds and every test still passes — so it would simply
+  ship as dead code. Nothing catches this one.</li>
+</ol>
+
+<p>Then <code>flutter gen-l10n</code> and <code>flutter test</code>. Nothing else needs touching: its entry
+in <code>kLanguageNames</code>, its section in the glossary and its row in <code>_script</code> are all
+harmless left in place, and the picker and <code>supportedLocales</code> follow the files that exist.</p>
+
+<p><strong>A player who had chosen it is not stranded.</strong> A stored language tag the game can no longer
+honour falls back to following the phone — the same reading the shop takes of an item id it no longer
+recognises.</p>
+
+<h3>Right-to-left languages</h3>
+
+<p>Arabic is one of the thirteen, and its layout is mirrored. Adding it needs <strong>no code</strong>:
+Flutter mirrors rows, padding, text alignment and the navigation chevrons from the locale, and the screens
+were checked at 320&nbsp;dp in both directions. <code>test/app/rtl_test.dart</code> keeps them that way.</p>
+
+<p>The one thing that must <em>not</em> mirror is the board, and it does not. A carrom board is drawn on a
+Flame canvas, which has no text direction at all &mdash; and the slide bar under it is deliberately
+direction-blind to match, reading the raw horizontal position of your finger and painting the knob from the
+left edge. That is what keeps the thumb and the striker on the same side of the screen.</p>
+
+<div class="warn">
+  <p><strong>Do not make the slide bar direction-aware.</strong> It looks like an oversight and is not.
+  The bar is already mirrored when the board turns round for the second player
+  (<code>barFraction</code> in <code>lib/game/input/bar_mapping.dart</code>); a second mirror from the text
+  direction would cancel it, and the striker would move the opposite way to the finger in Arabic
+  <em>only</em>. <code>test/game/pass_and_play_test.dart</code> drives all four combinations of direction
+  and board rotation for exactly this reason &mdash; with the bug in place, every left-to-right test still
+  passes.</p>
+</div>
+
+<h3>What the tests will not let you get wrong</h3>
+
+<ul>
+  <li><strong>A key a translation has but English does not</strong> — a typo, or a sentence the app stopped
+    saying — is work that goes nowhere: <code>gen-l10n</code> ignores it without a word. A test refuses it
+    for every language, finished or not.</li>
+  <li><strong>A finished translation missing a key</strong> falls back to English for that one line, which
+    reads as a translation that is merely unfinished. The <code>complete</code> set at the top of
+    <code>test/app/localisation_test.dart</code> lists the languages held to the full template; a language
+    joins it when it is translated, and from then on it can never quietly lose a sentence. A language left
+    out of the set must still translate <em>something</em> — an empty stub that puts a language in the picker
+    and shows English behind it fails too.</li>
+  <li><strong>A placeholder dropped in translation</strong> &mdash; a <code>{name}</code> that does not survive
+    into the translated sentence &mdash; is the fault nobody can see by reading a language they do not speak.
+    <code>test/game/game_strings_test.dart</code> runs every sentence in <strong>every</strong> locale and
+    asserts that every value it was handed comes out the other side. A new language is covered by the fact of
+    its file existing. It asserts presence rather than a count, deliberately, because a language may well
+    mention a number once where English mentions it twice.</li>
+  <li><strong>A language with no name</strong> would appear in the picker as a bare tag.</li>
+  <li><strong>A translation that does not fit.</strong> <code>test/app/locale_layout_test.dart</code> builds every screen in every language on a
+  320&nbsp;dp phone and fails on a layout overflow. This is the one that matters most for a
+  language nobody on your team reads: the usual way a translation breaks a screen is not that
+  it is wrong but that it is longer. It found the prize-table card in nine languages at once.</li>
+</ul>
+
+<h3>Plurals, and why the sentences are shaped the way they are</h3>
+
+<p>Prizes use ICU plurals, so one coin reads "1 coin" and two hundred reads "200 coins" &mdash; and a language
+with more than two plural forms, as Arabic and Russian both have, gets as many as it needs without any Dart
+changing:</p>
+
+<pre><code>"prizeWon": "Prize {coins, plural, =1{{coins} coin} other{{coins} coins}}"</code></pre>
+
+<p>Note that the <code>=1</code> branch writes <code>{coins}</code> rather than a literal <code>1</code>.
+It would read the same in English, and in a language that writes its own digits it would not: a bare
+<code>1</code> is a Latin digit sitting beside ১ everywhere else on the screen.</p>
+
+<p><strong>Every sentence the game shows is in the ARB</strong> — 208 of them, including the shop's item
+names, the twelve prize table names, the two rule-set names, the three difficulties and the five countries.
+The only user-facing text deliberately left out is the product name, the <code>CARROM CIRCUIT</code>
+wordmark, the thirteen language names in the picker, and the sixty-six robot names, which are people's names.
+<code>test/app/no_hardcoded_strings_test.dart</code> reads the source and fails on an English literal put
+back into a widget, naming the file, the line and the sentence.</p>
+
+<p>Screens read the generated class directly through <code>context.l10n</code>
+(<code>lib/shared/utils/l10n_context.dart</code>). The board is the exception: its message line and result
+panel are built by pure functions with no widget tree under them, so they are handed their sentences through
+<code>GameStrings</code> instead.</p>
+
+<p>Every sentence is a <strong>whole pattern</strong> rather than fragments joined at runtime, because word
+order belongs to a language. <code>GameStrings</code>
+(<code>lib/shared/utils/game_strings.dart</code>) is the interface the game asks, and
+<code>L10nGameStrings</code> is the adapter onto the generated class &mdash; it exists because the generated
+methods take <em>positional</em> arguments and several take two of the same type in a row, so naming them
+once is what stops a caller handing the second player's name first.</p>
+
+<h3>Numbers</h3>
+
+<p><strong>Every number the game shows is written the way the chosen language writes it.</strong> Seven of the
+thirteen do not group thousands with a comma &mdash; German, Turkish, Greek, Spanish and Brazilian Portuguese
+use a full stop, Russian and French a space &mdash; and Bangla has digits of its own, so 12,500 coins reads
+<code>12.500</code>, <code>12&nbsp;500</code> or <code>১২,৫০০</code>
+depending on who is reading.</p>
+
+<p>There are exactly two ways a number reaches the screen, and both go through
+<code>NumberFormat.decimalPattern</code> so they cannot disagree:</p>
+
+<ul>
+  <li><strong>Coin amounts</strong>, through <code>formatCoins(l10n, amount)</code> in
+  <code>lib/shared/utils/number_format.dart</code>. It takes the localisations because a separator is a fact
+  about a language. Amounts go into the ARB as <code>String</code> placeholders already formatted.</li>
+  <li><strong>Counts</strong> &mdash; points, a day in the streak, a table number &mdash; as <code>int</code>
+  placeholders in the ARB. These need <code>"format": "decimalPattern"</code> beside the type, or
+  <code>gen-l10n</code> interpolates the raw number and you get Latin digits with no grouping in all thirteen
+  languages.</li>
+</ul>
+
+<pre><code>"placeholders": { "points": { "type": "int", "example": "7", "format": "decimalPattern" } }</code></pre>
+
+<div class="warn">
+  <p><strong>A numeric placeholder without that line is the easy mistake</strong>, because nothing about it
+  looks wrong: the call compiles, the sentence appears, and only a reader of Bangla would notice the digits
+  are the wrong script. <code>test/app/localisation_test.dart</code> therefore checks the rule structurally
+  &mdash; every numeric placeholder in <code>app_en.arb</code> carries <code>decimalPattern</code> &mdash; and
+  names any that does not. Use an <code>int</code> only where the sentence needs the number itself, which
+  means an ICU plural; otherwise format it and pass a <code>String</code>.</p>
+</div>
+
+<h3>The language picker</h3>
+
+<p>First-class, under the profile row in Settings, because a player who cannot read the screen needs to reach
+it before anything else on it. Languages are listed <strong>in their own language</strong> &mdash;
+"বাংলা", not "Bengali" &mdash; which is why those names are the one piece of user-facing text in the app that
+is deliberately never translated. <em>Follow my phone</em> is the default and stores an empty tag.</p>
+
+<p>The chosen language is stored as a BCP-47 tag on <code>GameSettings</code> rather than a
+<code>Locale</code>, because <code>lib/core/</code> may not import <code>dart:ui</code>;
+<code>locale_choice.dart</code> is the seam that converts between the two.</p>
+
+<h2 id="audio">Sound &amp; vibration</h2>
+
+<p>Ten sound effects, listed in <code>GameSound</code> in
+<code>lib/services/audio_service.dart</code>. The enum value carries the file name, and that name is the
+only contract with <code>assets/audio/</code>:</p>
+
+<table>
+  <tr><th>File</th><th>When it plays</th></tr>
+  <tr><td><code>striker_hit.wav</code></td><td>The striker reaching a coin, scaled by how hard</td></tr>
+  <tr><td><code>coin_click.wav</code></td><td>Coin on coin, scaled the same way</td></tr>
+  <tr><td><code>wall_thud.wav</code></td><td>A cushion, or a pocket lip a coin was too fast to drop into</td></tr>
+  <tr><td><code>pocket_drop.wav</code></td><td>A coin going down. Once per step, however many fell</td></tr>
+  <tr><td><code>foul_buzz.wav</code></td><td>A foul: striker pocketed, air shot, or the clock run out</td></tr>
+  <tr><td><code>win_fanfare.wav</code></td><td>A game ending in anything but a defeat by the robot</td></tr>
+  <tr><td><code>lose_sting.wav</code></td><td>Losing to the robot, and only that</td></tr>
+  <tr><td><code>button_tap.wav</code></td><td>Every <code>CarromButton</code> in the game</td></tr>
+  <tr><td><code>coin_collect.wav</code></td><td>Coins arriving: a reward, a refill, a video, a prize</td></tr>
+  <tr><td><code>timer_tick.wav</code></td><td>Each of the last five seconds of a turn</td></tr>
+</table>
+
+<div class="warn">
+  <p><strong>These are synthesised, and they ship that way.</strong> They were generated rather than
+  recorded, so the game makes the right noise at the right moment without commissioned sound design. They
+  are the one part of the presentation worth replacing if you have a budget for it. Drop your own ten files
+  in under the same names and nothing in the Dart changes; to use different names, change them in one place
+  in <code>GameSound</code>. Either way,
+  <code>flutter test test/audio/sound_assets_test.dart</code> tells you whether the names and the files
+  still agree — a mismatch is silent at runtime by design, because an unplayable sound must never stop a
+  board game.</p>
+</div>
+
+<h3>How loud a knock is</h3>
+
+<p>Section 11 asks for the striker hit to be scaled by speed; the same curve serves every knock, because
+they are all the same question. The constants are in <code>lib/game/config/audio_config.dart</code>:</p>
+
+<table>
+  <tr><th>Constant</th><th>Default</th><th>What it does</th></tr>
+  <tr><td><code>kQuietestImpact</code></td><td>60</td>
+      <td>Below this a contact makes no sound. A settling board produces a long tail of very soft
+      contacts, and a click for each is a rattle that never ends.</td></tr>
+  <tr><td><code>kLoudestImpact</code></td><td>900</td>
+      <td>At and above this a knock plays at full volume. Well under the 2,200 a full-power striker
+      leaves at, because by the time it reaches the pack it has slowed.</td></tr>
+  <tr><td><code>kQuietestVolume</code></td><td>0.18</td>
+      <td>How loud the quietest audible knock is. Not zero: a knock fading to nothing has a band where
+      it is playing but inaudible, which reads as dropped sounds.</td></tr>
+  <tr><td><code>kMaxKnocksPerFrame</code></td><td>3</td>
+      <td>The opening break lands a dozen contacts in one step, and a dozen clicks at once is static
+      rather than a break. The loudest are kept.</td></tr>
+</table>
+
+<p>The player can turn sound off in Settings; the switch is read on every sound rather than cached, so
+it takes effect on the next shot. A missing or unplayable file is swallowed — a buyer who supplies a
+format the platform dislikes gets a quiet game, not a crash.</p>
+
+<h3>Vibration</h3>
+
+<p>Light on a knock, firmer when a coin goes down, heavier on a foul, through Flutter's own
+<code>HapticFeedback</code> — no extra dependency. The player can switch it off in Settings.</p>
+
+<p>Two numbers in <code>lib/game/config/haptics_config.dart</code> stop it becoming a nuisance:</p>
+
+<table>
+  <tr><th>Constant</th><th>Default</th><th>What it does</th></tr>
+  <tr><td><code>kQuietestJolt</code></td><td>320</td>
+      <td>The softest knock worth feeling, far above the threshold for being <em>heard</em>. An ear takes
+      a dozen quiet clicks in an opening break and reads them as a break; a hand reads them as a phone
+      that will not stop.</td></tr>
+  <tr><td><code>kMaxJoltsPerFrame</code></td><td>1</td>
+      <td>A vibration motor rises and falls over tens of milliseconds, so two jolts a frame apart are one
+      longer, muddier buzz rather than two.</td></tr>
+</table>
+
+<h3>Settings</h3>
+
+<p>Sound, Vibration, turning the board round, the aim guide, the turn timer, and the time allowed for each
+shot — three lengths (15, 20, 30 seconds) rather than a slider, because the difference between 20 and 21 is
+not a preference anybody holds. A new length applies to the next game, not the one on screen, and so does a
+change to the aim guide: both are read once, when the board is built.</p>
+
+<p>One of the specification's settings is deliberately absent: there is no <strong>music</strong> toggle,
+because there is no music track, and a switch that controls nothing is worse than no switch.</p>
+
+<h4>The aim guide</h4>
+
+<p>Section 7.1 of the design asks for a guide that &ldquo;shows the first collision point&rdquo;. It is a
+ghost striker drawn where the striker would first touch a coin, a dot where the two would meet, and a dashed
+line out of that coin showing <strong>which way the coin itself would go</strong>. It is
+<strong>on by default</strong> — the aid this genre is played with, and a cut angle is the one thing
+about a carrom board that a phone screen makes genuinely harder to read. A player who would rather read the
+board themselves switches it off.</p>
+
+<p>The geometry is a pure function, <code>firstContact</code> in
+<code>lib/game/input/aim_contact.dart</code>, and it is an exact ray cast rather than a simulation: the
+striker leaves in a straight line, and friction only ever shortens its velocity, never turns it. What it
+deliberately does not answer is whether the striker <em>gets</em> there &mdash; at a feeble power it stops
+short, and the guide keeps the same silence the aim line does. A test fires the shot it predicts and asserts
+that the engine's first contact is the one the guide marked, which is what holds the two to the same
+board.</p>
+
+<p><strong>The coin’s own path is the half that makes a shot aimable.</strong> The ring answers &ldquo;which
+coin will I hit&rdquo;, which a player can already see; on a cut, that coin leaves at an angle to the shot, and
+working out which angle is the part a phone makes genuinely hard. The direction is exact geometry — the line
+between the two centres at the moment of contact, which is the whole of what an elastic hit between two circles
+decides — and <code>coinProjectionLength</code> in <code>lib/game/input/aim_line.dart</code> decides how far it
+is drawn: one fixed <code>kCoinProjectionLength</code>, clipped at the cushion, for the same reason the aim line
+has one length. How far the coin actually travels depends on a power the guide has no business restating.</p>
+
+<p>Two honest limits, both deliberate. It accounts for <strong>no second coin in the way</strong> — only the
+first contact can be answered without running the engine — and it is about two and a half degrees optimistic,
+because the engine resolves a contact after a sub-step of overlap and so uses a line of centres slightly past
+the exact tangency. That is roughly 13 units of drift over the 300 that get drawn, against a pocket 30 units
+across: it points a player at the right pocket and should not be read as finer than that. A test fires the cut
+it predicted and holds the drawn direction to the one the engine actually sends the coin off in.</p>
+
+<p>The guide sees only as far as the aim line reaches, so a contact past the end of the line is not marked.
+That is also what makes the striker perk a guide perk, exactly as Section 7.1 words it. The coin’s path takes
+no reach of its own: the perk already buys a longer sight of the board, and stretching the marked coin’s path
+as well would pay it out twice.</p>
+
+<p><strong>It is drawn in two inks</strong>, a near-white over a dark halo, and the halo is not decoration.
+The guide is painted over every board rather than chosen per board, so unlike a board's own markings it
+cannot pick a colour that suits the surface: measured against the lit end of Marble, a near-white mark
+differs by 0.019 of relative luminance, and against Maple by 0.199 &mdash; both under the 0.25 this project
+demands of board markings. With the halo the worst case across every board skin is 0.451. If you add a board
+skin, <code>test/game/equipment_skins_test.dart</code> will tell you if the guide disappears into it.</p>
+
+<h2 id="animations">Animations &amp; splash</h2>
+
+<p>Timings are in <code>lib/game/config/animation_config.dart</code>:</p>
+
+<table>
+  <tr><th>Constant</th><th>Default</th><th>What it does</th></tr>
+  <tr><td><code>kPocketDropDuration</code></td><td>260&nbsp;ms</td>
+      <td>How long a pocketed coin takes to shrink and fade into the hole</td></tr>
+  <tr><td><code>kPocketDropScale</code></td><td>0.35</td>
+      <td>How small it gets before it is gone. Not zero: a disc shrinking to a
+      point draws a last frame of one pixel, which reads as a speck left
+      behind.</td></tr>
+  <tr><td><code>kScorePopupDuration</code></td><td>900&nbsp;ms</td><td>How long a "+20" rises and fades</td></tr>
+  <tr><td><code>kScorePopupRise</code></td><td>62 units</td><td>How far it rises &mdash; about two coin widths</td></tr>
+  <tr><td><code>kCoinFlightDuration</code></td><td>750&nbsp;ms</td><td>How long collected coins take to reach the wallet badge</td></tr>
+</table>
+
+<p>Score popups are a <strong>Scramble</strong> feature. They show the points the rules arrived at rather
+than the coins pocketed, because the two are not the same &mdash; the queen pays nothing until she is
+covered, and a striker foul takes ten away. Tournament keeps no score, so it pops nothing: the tray
+filling beside the "n of 9" counter already says a coin was banked.</p>
+
+<h3>The splash screen</h3>
+
+<p>The brand colour sits in three places that cannot read one another, and a test keeps them in step:</p>
+
+<ul>
+  <li><code>CarromColors.walnutDeep</code> in <code>lib/app/theme.dart</code></li>
+  <li><code>carrom_walnut_deep</code> in <code>android/app/src/main/res/values/colors.xml</code></li>
+  <li>the background colour in <code>ios/Runner/Base.lproj/LaunchScreen.storyboard</code></li>
+</ul>
+
+<p>Change all three when you rebrand; <code>test/app/splash_test.dart</code> fails if you miss one. Note
+that the Android <em>window</em> background is set to the same colour as well as the splash drawable
+&mdash; the window shows through for the frame between the splash being dismissed and Flutter painting,
+and leaving it white puts the flash one frame later rather than removing it.</p>
+
+<h2 id="android-release">Android release build</h2>
+
+<ol class="steps">
+  <li>Create a signing key. Keep it <strong>outside</strong> the project folder, so that deleting a
+    checkout cannot destroy it:
+    <pre><code>keytool -genkeypair -v \
+  -keystore "$HOME/carrom-circuit-upload.jks" \
+  -storetype JKS -keyalg RSA -keysize 4096 -validity 10000 \
+  -alias upload</code></pre>
+    <p>keytool asks for the passwords rather than taking them as arguments, so they stay out of your shell
+    history. The 10000-day validity is Google's own requirement: an upload key that expires before 2033 is
+    rejected.</p>
+  </li>
+  <li>Copy the template and fill in the four values:
+    <pre><code>cp android/key.properties.example android/key.properties</code></pre>
+    <p><code>android/key.properties</code> is git-ignored and must never be committed, shared, or included
+    in anything you distribute — anyone holding it and the keystore can publish an update to your app.
+    <code>android/key.properties.example</code> documents each field.</p>
+  </li>
+  <li>Build the bundle Google Play expects:
+    <pre><code>flutter build appbundle --release</code></pre>
+    The output is <code>build/app/outputs/bundle/release/app-release.aab</code>.
+  </li>
+  <li>For direct installation or sideloading, build an APK instead:
+    <pre><code>flutter build apk --release</code></pre>
+  </li>
+</ol>
+
+<p>If <code>key.properties</code> is missing, the release build still succeeds but is signed with the
+<em>debug</em> keys and prints a warning saying so. That is deliberate, so the project builds from a clean
+clone before you have made a key — but such a build cannot be uploaded to Play, which refuses a
+debug-signed bundle. Watch for the warning if an upload is rejected:</p>
+
+<pre><code>WARNING  key.properties not found: signing the release build with the DEBUG keys.</code></pre>
+
+<p><code>flutter test test/app/release_signing_test.dart</code> checks that the fields Gradle reads are the
+fields the template documents, that no keystore or <code>key.properties</code> has been committed, and that
+no password has been hardcoded into the build file.</p>
+
+<div class="warn">
+  <p><strong>Back the keystore up, and the passwords with it.</strong> Without
+  <a href="https://support.google.com/googleplay/android-developer/answer/9842756">Play App Signing</a>,
+  losing them means you can never publish another update to the same listing — you would have to ship a new
+  app and lose every install and review.</p>
+  <p>Enrolling in Play App Signing is strongly recommended, and is required for new apps on Google Play.
+  Google then holds the app signing key and the key above is only your <em>upload</em> key, which Google
+  support can reset for you if it is lost or compromised.</p>
+</div>
+
+<h2 id="ios-release">iOS release build</h2>
+
+<ol class="steps">
+  <li>Open <code>ios/Runner.xcworkspace</code> in Xcode.</li>
+  <li>Under <em>Signing &amp; Capabilities</em>, select your Apple Developer team and bundle identifier.</li>
+  <li>Build the archive:
+    <pre><code>flutter build ipa --release</code></pre>
+  </li>
+  <li>Upload the resulting archive with Xcode's Organiser or Transporter.</li>
+</ol>
+
+<p>An Apple Developer Program membership and a Mac are required.</p>
+
+<h2 id="privacy-policy">Your privacy policy</h2>
+
+<p>Google Play will not publish an app without a privacy policy at a <strong>publicly reachable URL</strong>
+&mdash; one that does not require a login. You need your own: it describes <em>your</em> data practices
+under <em>your</em> name, so it is not something this item can ship for you.</p>
+
+<p>What it has to cover for this app is short, because the app itself collects nothing. There is no account,
+no server and no analytics; game progress is a local <code>shared_preferences</code> blob that never leaves
+the device. Almost everything a policy must disclose comes from the ads SDK &mdash; the exception is the
+first item below:</p>
+
+<ul>
+  <li>that the game <strong>keeps a little data on the device</strong>, including a <strong>name the player
+    types in themselves</strong> on the Profile screen. This is not <em>collected</em> in the sense the
+    stores mean &mdash; nothing is transmitted, so Play's Data safety form answers <em>Personal info</em>
+    with <strong>No</strong>, and over-declaring it would oblige you to describe a transfer that does not
+    happen. Disclose it anyway, under a heading like <em>Information stored on your device</em>: a player may
+    well type their real name, and a policy that does not mention the field is wrong about the app. The full
+    list of keys is in <code>StorageKeys</code>;</li>
+  <li>that the app <strong>shows ads supplied by Google AdMob</strong>, and that Google &mdash; not you
+    &mdash; collects data to serve and measure them;</li>
+  <li>the <strong>advertising ID</strong>, device and app information, approximate location derived from
+    the IP address, and ad interactions;</li>
+  <li>links to <a href="https://policies.google.com/privacy">Google's Privacy Policy</a> and to
+    <a href="https://policies.google.com/technologies/partner-sites">how Google uses data from apps that
+    use its services</a>;</li>
+  <li>how a player changes their mind: the in-app <em>Advertising choices</em> row in Settings, and
+    resetting the advertising ID in Android's own settings. A player can clear their name on the
+    <em>Profile</em> screen, and uninstalling removes everything the app stored;</li>
+  <li>a contact address.</li>
+</ul>
+
+<p>The permissions to describe are not the app's own &mdash; it declares none. These arrive with
+<code>play-services-ads-api</code> and appear on your store page regardless:</p>
+
+<table>
+  <tr><th>Permission</th><th>Why it is there</th></tr>
+  <tr><td><code>INTERNET</code>, <code>ACCESS_NETWORK_STATE</code></td><td>Fetching ads, and knowing whether there is a connection</td></tr>
+  <tr><td><code>com.google.android.gms.permission.AD_ID</code></td><td>Reading the advertising ID</td></tr>
+  <tr><td><code>ACCESS_ADSERVICES_AD_ID</code>, <code>…_ATTRIBUTION</code>, <code>…_TOPICS</code></td><td>Android's Privacy Sandbox advertising APIs</td></tr>
+  <tr><td><code>WAKE_LOCK</code>, <code>FOREGROUND_SERVICE</code></td><td>Used internally by Google Play services while handling ad requests</td></tr>
+</table>
+
+<p>You can confirm this list for your own build at any time:</p>
+
+<pre><code>aapt2 dump permissions build/app/outputs/flutter-apk/app-release.apk</code></pre>
+
+<div class="warn">
+  <p>The <code>AD_ID</code> permission means the Play <strong>Data safety</strong> form must declare that
+  the app collects and shares a device identifier for advertising. If you ever target the app at children,
+  Play's Families policy requires that permission to be removed and the ads configured for child-directed
+  treatment &mdash; which is a code change, not a form change.</p>
+</div>
+
+<h2 id="store-checklist">Store checklist</h2>
+
+<ul>
+  <li>Final application ID set and verified on both platforms</li>
+  <li>App name, launcher icon and splash screen replaced with your artwork</li>
+  <li>Live AdMob IDs in place and <code>kReleaseAds = true</code></li>
+  <li><code>app-ads.txt</code> published on your developer website</li>
+  <li>Privacy policy published and linked in both store listings &mdash; see below for what it has to
+    disclose</li>
+  <li>Store listing text, screenshots and feature graphic prepared</li>
+  <li>Content rating questionnaire completed, declaring the app contains advertising</li>
+  <li>Tested on at least three devices, including a low-end phone and a tablet</li>
+</ul>
+
+<div class="note">
+  <p>New Google Play developer accounts must run a closed test with real testers for a required period before
+  they can promote a build to production. Plan for that in your release schedule.</p>
+</div>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3>Gradle fails with "NDK did not have a source.properties file"</h3>
+<p>The pinned NDK is missing or was downloaded incompletely. Delete the folder it names, then either install
+that NDK version from Android Studio or change <code>ndkVersion</code> in
+<code>android/app/build.gradle.kts</code> as described under <a href="#requirements">Requirements</a>.</p>
+
+<h3>Build fails after changing the application ID</h3>
+<p>The Kotlin folder path must match the <code>package</code> declaration in <code>MainActivity.kt</code>.
+Check both, then run <code>flutter clean</code> followed by <code>flutter pub get</code>.</p>
+
+<h3>"Unable to load asset" at runtime</h3>
+<p>Every asset folder must be declared in the <code>flutter: assets:</code> section of
+<code>pubspec.yaml</code>. Add the folder, then stop and restart the app — a hot reload will not pick up new
+asset declarations.</p>
+
+<h3>The app crashes immediately on launch</h3>
+<p>Check that the manifest still contains the <code>com.google.android.gms.ads.APPLICATION_ID</code>
+meta-data, and <code>Info.plist</code> the <code>GADApplicationIdentifier</code> key. A missing or malformed
+AdMob application ID kills the process during start-up, before any Flutter code runs. Confirm with:</p>
+<pre><code>adb logcat | grep -i "Missing application ID"</code></pre>
+
+<h3>Ads never appear</h3>
+<p>On a debug build with test IDs, ads load only on a device with Google Play services. Check the console for
+AdMob error codes; code 3 (no fill) is normal for a brand-new live ad unit and usually resolves within a few
+hours of the unit being created.</p>
+
+<h3>The game feels sluggish</h3>
+<p>Measure on a <code>--release</code> build. Debug builds disable Dart optimisation and are not
+representative of shipped performance.</p>
+
+<p>If frames are being dropped while the robot is thinking rather than while coins are moving, the cost is the
+shot search rather than the drawing. A Hard search simulates up to 900 candidate shots, each one played out on
+the physics engine until every coin stops.</p>
+
+<p><strong>Reach for the engine before the robot.</strong> Nearly all of that cost used to be the engine asking
+questions whose answers could not have changed: on a full board it tested all 190 pairs of bodies for a
+collision on every sub-step, while only about 2.4 of the twenty bodies were moving. It now leaves alone any
+pair whose two bodies have both stayed put since it last looked, which is exact rather than approximate and
+measured at 2.2&ndash;3.0&times; faster on boards with a realistic number of coins on them. If you are
+profiling a slow search, check first that you have not disturbed that: it is the <code>_stirred</code>
+bookkeeping in <code>lib/core/physics/physics_world.dart</code>, and switching it off makes the robot think
+two to three times longer while playing exactly the same shot.</p>
+
+<p>Only after that is the robot's own search width worth trimming. It is <code>aimBudget</code> on
+<code>RobotProfile.hard</code> in <code>lib/core/ai/difficulty.dart</code>, which is 60 aims expanded into 15
+shots each. Lower it and the search gets proportionally cheaper &mdash; and the robot proportionally weaker,
+so update <code>maxCandidates</code> beside it to match (it is deliberately the exact product, so that a search
+is never cut off part-way through an aim) and reword the difficulty picker, which currently promises that Hard
+&ldquo;sees every shot on the board&rdquo;.</p>
+
+<h2 id="credits">Credits &amp; licences</h2>
+
+<p>This item is built on the following open-source packages, each under its own licence. The versions below
+are the ones the project is pinned to; run <code>flutter pub deps</code> at any time for the full dependency
+tree, including transitive packages.</p>
+
+<table>
+  <tr><th>Package</th><th>Version</th><th>Purpose</th><th>Licence</th></tr>
+  <tr><td>flutter</td><td>3.41.6</td><td>Application framework</td><td>BSD 3-Clause</td></tr>
+  <tr><td>flutter_localizations</td><td>SDK</td><td>Flutter's own translations</td><td>BSD 3-Clause</td></tr>
+  <tr><td>flame</td><td>1.38.2</td><td>Game loop and rendering</td><td>MIT</td></tr>
+  <tr><td>flutter_riverpod</td><td>3.3.2</td><td>State management</td><td>MIT</td></tr>
+  <tr><td>shared_preferences</td><td>2.5.5</td><td>Local persistence</td><td>BSD 3-Clause</td></tr>
+  <tr><td>flame_audio</td><td>2.12.2</td><td>Sound playback</td><td>MIT</td></tr>
+  <tr><td>google_mobile_ads</td><td>9.1.0</td><td>AdMob integration</td><td>Apache 2.0</td></tr>
+  <tr><td>intl</td><td>0.20.2</td><td>Plurals and locale-aware numbers</td><td>BSD 3-Clause</td></tr>
+  <tr><td>cupertino_icons</td><td>1.0.9</td><td>iOS-style icon set</td><td>MIT</td></tr>
+</table>
+
+<h3>The licences screen inside the app</h3>
+
+<p><strong>Settings &rarr; Licences.</strong> It is Flutter's own <code>LicensePage</code>, which reads
+<code>LicenseRegistry</code> — the list the build assembles from <em>every</em> package in the resolved
+tree. That is around 110 Dart packages plus the engine's own native dependencies, not the nine credited
+above, so it is considerably longer than this table and it cannot fall behind a dependency change.</p>
+
+<p>Two things follow from it being Flutter's page rather than one of ours. It is already translated into
+all thirteen languages, because the page title and the "N licenses" counts come from
+<code>GlobalMaterialLocalizations</code>. And it takes your theme, so if you rebrand the app the licences
+screen follows without being touched.</p>
+
+<div class="note">
+  <p><strong>If you rebrand</strong>, the two things to change are in
+  <code>lib/features/settings/licences_screen.dart</code>: <code>appName</code>, and
+  <code>kAppVersion</code> — which is written out rather than read from the bundle, to avoid a package
+  and a platform channel for one line of text. <code>test/app/licences_test.dart</code> holds that
+  constant to the <code>version:</code> in <code>pubspec.yaml</code>, so bumping your version fails the
+  test rather than shipping a stale number on the page.</p>
+</div>
+
+<div class="note">
+  <p><strong>Upgrading dependencies.</strong> <code>flutter_riverpod</code> is held at 3.3.2 because 3.4.0 and
+  later require Dart 3.12. If you upgrade your Flutter SDK you can raise it with
+  <code>flutter pub upgrade --major-versions</code>, then re-run <code>flutter test</code>.</p>
+</div>
+
+<p>Fonts, sound effects and artwork shipped with the item are licensed for use in applications you build from
+this source. They may not be redistributed on their own or resold as a standalone asset pack.</p>
+
+<h2 id="support">Support</h2>
+
+<p>Support covers the item as supplied: answering questions about the included features, and fixing defects
+in the original source. It does not cover customisation work, third-party plugins you add, or problems caused
+by modifications to the code.</p>
+
+<p>Before getting in touch, please run <code>flutter doctor -v</code> and include its output together with the
+exact error message and the steps that produce it — that information resolves most reports immediately.</p>
+
+<p>Contact details are listed on the item page.</p>
+
+<h2 id="changelog">Changelog</h2>
+
+<p>The full version history ships with the item in <code>CHANGELOG.md</code>.</p>
+
+<footer>
+  <p>Carrom Circuit documentation &middot; v1.0.0</p>
+</footer>
+
+</main>
+</div>
+<script src="assets/doc-nav.js"></script>
+</body>
+</html>
