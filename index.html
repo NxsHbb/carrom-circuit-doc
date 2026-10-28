@@ -1530,8 +1530,14 @@ nothing, so a rewarded video that returns false has earned nothing.</p>
 
 <h3>Where ads appear</h3>
 <ul>
-  <li><strong>Interstitial</strong> — only after a match against the robot, at most once every two matches and
-    never less than three minutes apart. Never during play, and never after a local 2-player game.</li>
+  <li><strong>Interstitial, after a match</strong> — only after a match against the robot, at most once
+    every two matches and never less than three minutes apart. Never during play, and never after a local
+    2-player game.</li>
+  <li><strong>Interstitial, as a match begins</strong> — also robot matches only, and shown <em>only if one
+    is already loaded</em>, so starting a game is never delayed waiting for an advertisement. A device with
+    no connection never loads one, so it simply never sees this ad, and no connectivity check is needed
+    anywhere in the project. At least 90 seconds must have passed since the last ad of <em>either</em>
+    kind, which is what stops the two appearing back to back when a player asks for a rematch.</li>
   <li><strong>Rewarded video</strong> — only when the player taps to watch one, always behind a confirmation
     dialog, with coins granted strictly in the reward callback.</li>
 </ul>
@@ -1545,6 +1551,10 @@ nothing, so a rewarded video that returns false has earned nothing.</p>
   <tr><td><code>matchesBetweenAds</code></td><td>2</td>
       <td>Robot matches that must finish between two ads. A new player therefore finishes two matches
       before seeing anything.</td></tr>
+  <tr><td><code>minimumStartGap</code></td><td>90&nbsp;seconds</td>
+      <td>The shortest gap before an ad shown at the <em>start</em> of a match, measured from the last ad
+      of either kind. Raise it to make that ad rarer, or set it very large to switch the placement off
+      while leaving the one after a match alone.</td></tr>
   <tr><td><code>minimumGap</code></td><td>3&nbsp;minutes</td>
       <td>The shortest time allowed between two ads, whatever the match count says. This is what stops a
       run of very short games being interrupted twice in a minute.</td></tr>
