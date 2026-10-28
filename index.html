@@ -13,7 +13,7 @@
 <aside class="sidebar">
   <div class="brand">
     <strong>Carrom Circuit</strong>
-    <span>Documentation &middot; v1.0.0</span>
+    <span>Documentation &middot; v1.1.0</span>
   </div>
   <nav>
     <div class="group">Getting started</div>
@@ -35,9 +35,11 @@
     <div class="group">Releasing</div>
     <a href="#android-release">Android release build</a>
     <a href="#ios-release">iOS release build</a>
+    <a href="#web">Web build</a>
     <a href="#privacy-policy">Your privacy policy</a>
     <a href="#store-checklist">Store checklist</a>
     <div class="group">Help</div>
+    <a href="#faq">FAQ</a>
     <a href="#troubleshooting">Troubleshooting</a>
     <a href="#credits">Credits &amp; licences</a>
     <a href="#support">Support</a>
@@ -128,6 +130,48 @@ transferred.</p>
 </div>
 
 <h2 id="quick-start">Quick start</h2>
+
+<h3>What you need before you begin</h3>
+
+<p>This is a Flutter project, so it is built from a terminal rather than from an installer. You do
+not need to write any Dart to publish the game as your own &mdash; every step below is editing a
+value or running a command &mdash; but you do need to be comfortable running commands, and you need
+these four things installed first:</p>
+
+<table>
+  <tr><th>What</th><th>Version</th><th>Why</th></tr>
+  <tr><td>Flutter SDK, stable channel</td><td>3.41.6 or newer</td>
+      <td>Builds and runs the whole project. Installing it also installs Dart, so Dart is not a
+      separate download.</td></tr>
+  <tr><td>Dart</td><td>3.11.4 or newer</td>
+      <td>Arrives with the Flutter SDK. The project will refuse to build on anything older.</td></tr>
+  <tr><td>Android Studio</td><td>Current</td>
+      <td>The easiest way to get the Android SDK, platform 36 and the build tools. You can edit the
+      code in any editor you like.</td></tr>
+  <tr><td>JDK</td><td>17</td>
+      <td>Required by the Android Gradle build. Android Studio bundles a suitable one.</td></tr>
+</table>
+
+<p><strong>For an Android release you need nothing else.</strong> Publishing to the iPhone App Store
+additionally requires a Mac running Xcode 15 or newer with CocoaPods, because Apple does not allow
+iOS apps to be built on any other operating system. The full table of versions, including the
+Android NDK note, is under <a href="#requirements">Requirements</a>.</p>
+
+<div class="note">
+  <p><strong>How long this takes.</strong> If Flutter is already set up and healthy, the six steps
+  below are an afternoon, and most of that is creating your store accounts rather than touching the
+  project. If you have never installed Flutter before, allow a few hours for the toolchain on its
+  own and work through
+  <a href="https://docs.flutter.dev/get-started/install">Flutter&rsquo;s own install guide</a> before
+  you open this archive. Running <code>flutter doctor -v</code> and getting a clean report is the
+  point at which you are ready to start.</p>
+  <p><strong>You will also need</strong> a Google Play developer account (a one-off fee), an AdMob
+  account if you want the advertising to earn anything, and somewhere to host a privacy policy page.
+  None of those are included with this item &mdash; see
+  <a href="#store-checklist">Store checklist</a> for the full list.</p>
+</div>
+
+<h3>Six steps to make it yours</h3>
 
 <p>Six steps from the unzipped archive to a build you can upload to a store under your own name.
 Each step links to the section with the detail, but the list stands on its own &mdash; nothing else
@@ -2102,6 +2146,73 @@ no password has been hardcoded into the build file.</p>
 
 <p>An Apple Developer Program membership and a Mac are required.</p>
 
+<h2 id="web">Web build</h2>
+
+<div class="warn">
+  <p><strong>Web is not a supported target for this item, and it is not recommended for
+  production.</strong> The game is built, released and tested for <strong>Android</strong>, with iOS
+  as a second target. The web files are included because Flutter generates them and because the icon
+  generator writes into them, not because the game has been shipped to a browser.</p>
+</div>
+
+<p>Having said that, it does build and it does run, so here is exactly where it stands rather than a
+flat refusal.</p>
+
+<h3>How to build it</h3>
+
+<pre><code>flutter build web</code></pre>
+
+<p>That writes a complete static site into <code>build/web</code> &mdash; copy the contents of that
+folder to any web host or CDN. There is no server component to deploy, because the game has no
+backend of any kind. To try it before you publish anything, use the following and Flutter will open
+it for you:</p>
+
+<pre><code>flutter run -d chrome</code></pre>
+
+<h3>What works, and what does not</h3>
+
+<table>
+  <tr><th>Area</th><th>On the web</th></tr>
+  <tr><td>The game itself</td>
+      <td><strong>Works.</strong> The board, the physics, the robot opponent and the menus all
+      render and play. The engine is pure Dart with no platform calls in it, so it behaves
+      identically to the mobile build.</td></tr>
+  <tr><td>Saved progress</td>
+      <td><strong>Works</strong>, through the browser&rsquo;s local storage. Coins, settings, the
+      shop and the profile persist. Clearing site data resets them, and progress does not follow a
+      player to another browser or machine.</td></tr>
+  <tr><td>Advertising</td>
+      <td><strong>Does not work, at all.</strong> The Google Mobile Ads SDK publishes
+      <strong>Android and iOS implementations only</strong>, so no ad of any kind can load in a
+      browser and start-up logs two uncaught errors where the SDK would normally initialise. The
+      game carries on regardless, because every path that shows an ad already copes with there
+      being none.</td></tr>
+  <tr><td>Screen orientation</td>
+      <td><strong>Not applied.</strong> The portrait lock is a mobile setting that browsers ignore,
+      so the game is laid out into whatever shape the browser window happens to be.</td></tr>
+  <tr><td>Sound and vibration</td>
+      <td>Sound has a web implementation and should play once the player has tapped something,
+      because browsers block audio until then. Vibration does nothing on a desktop browser. Neither
+      has been verified on real hardware.</td></tr>
+</table>
+
+<div class="note">
+  <p><strong>What was actually checked</strong>, so you know how far to trust the table above:
+  <code>flutter build web</code> completes successfully, the built site loads in Chrome, the home
+  screen renders correctly and a fresh wallet reads its starting 1,000 coins, which means storage is
+  working. A full play-through across several browsers has <em>not</em> been done, and no web build
+  has been put in front of users. Treat the web target as a starting point you would need to test
+  yourself, not as a finished second product.</p>
+</div>
+
+<div class="note">
+  <p><strong>If you do not want the web files</strong>, deleting the <code>web</code> folder is
+  safe &mdash; nothing in the Android or iOS build reads it. Two things then need a moment of your
+  attention: <code>tool/generate_app_icons.py</code> writes three icons into that folder and will
+  fail if it is missing, and the display-name row for web under
+  <a href="#rebranding">Rebranding</a> stops applying.</p>
+</div>
+
 <h2 id="privacy-policy">Your privacy policy</h2>
 
 <p>Google Play will not publish an app without a privacy policy at a <strong>publicly reachable URL</strong>
@@ -2174,6 +2285,93 @@ first item below:</p>
   <p>New Google Play developer accounts must run a closed test with real testers for a required period before
   they can promote a build to production. Plan for that in your release schedule.</p>
 </div>
+
+<h2 id="faq">FAQ</h2>
+
+<h3>Do I need an AdMob account to publish this at all?</h3>
+
+<p><strong>No.</strong> The game is complete and fully playable with no advertising, no account and
+no network connection. AdMob is how the item is set up to <em>earn</em>, not something the game
+needs in order to run or to be accepted by a store.</p>
+
+<p>What you must not do is publish with the Google test IDs still in place, because that serves
+Google&rsquo;s test inventory and pays nobody. So there are two honest routes:</p>
+
+<ul>
+  <li><strong>Keep the ads.</strong> Create a free AdMob account, put your own IDs in, and set the
+    release flag. That is one short file and two lines of XML, described under
+    <a href="#ads">AdMob setup</a>.</li>
+  <li><strong>Remove the ads.</strong> Advertising reaches the game in exactly two screens, so
+    taking it out is a small job rather than a rewrite. Remove the
+    <code>google_mobile_ads</code> dependency from the pubspec, delete the application ID meta-data
+    from the Android manifest and the iOS property list, and remove the two calls that offer an ad.
+    The rewarded-video panel on the daily reward screen and the interstitial after a prize match are
+    the only two places involved.</li>
+</ul>
+
+<h3>What happens to a player&rsquo;s coins and progress if they reinstall the app?</h3>
+
+<p>Everything a player accumulates &mdash; coins, the prize-table ladder, the daily-reward streak,
+purchased equipment, their name and avatar &mdash; is stored <strong>on the device only</strong>.
+There is no server, no account and no cloud save, and none of it is ever uploaded anywhere. That is
+also why the privacy policy can say the game collects nothing.</p>
+
+<p>The practical consequence is this. Uninstalling clears the saved data. <strong>However</strong>,
+the project does not switch off Android&rsquo;s Auto Backup, which is on by default, so on a device
+signed in to a Google account Android may back the saved values up and restore them when the app is
+installed again. You should treat that as likely but not guaranteed &mdash; it depends on the
+player&rsquo;s own backup settings and on Google&rsquo;s scheduling.</p>
+
+<p>If you would rather progress never came back, add <code>android:allowBackup="false"</code> to the
+<code>application</code> tag in <code>android/app/src/main/AndroidManifest.xml</code> and the data
+is cleared for good on uninstall. If instead you want progress to follow a player between devices,
+that needs an account system and a backend, which this item deliberately does not include.</p>
+
+<h3>Does the game work on tablets?</h3>
+
+<p><strong>Yes.</strong> The board is drawn in its own units through a fixed-resolution camera and
+scaled to whatever screen it finds, so there are no pixel breakpoints anywhere and no tablet-sized
+layout to maintain. The interface is laid out the same way, and the automated tests build every
+screen at 320&nbsp;dp &mdash; narrower than any tablet &mdash; so the small end is the one under
+pressure, not the large one.</p>
+
+<p>Two things to know. The game is <strong>locked to portrait</strong> on both platforms, so on a
+tablet it stays portrait rather than following the device&rsquo;s rotation; on a large screen the
+board is simply a large square with the score panels above and below it. And it has been tested on
+phones rather than on a physical tablet, so if tablets matter to your launch, run it on one before
+you publish. Unlocking rotation means changing the orientation in three places &mdash; the call in
+<code>lib/main.dart</code>, the Android manifest and the iOS property list &mdash; and the panels
+above and below the board were never designed for a landscape shape, so expect to spend time on that
+layout if you do.</p>
+
+<h3>Does the game need an internet connection?</h3>
+
+<p>Only for advertising. Every other part &mdash; the rules, the physics, the robot opponent, the
+economy, the shop and all thirteen languages &mdash; runs entirely offline. With no connection the
+game plays normally and ad requests simply return nothing, which every screen already handles.</p>
+
+<h3>Is there a server, a database or an API to set up?</h3>
+
+<p>No. There is no backend of any kind, nothing to host and nothing to pay for monthly. The only
+external service the app talks to is Google&rsquo;s ad network.</p>
+
+<h3>Does it include in-app purchases?</h3>
+
+<p>No. The coins are virtual, cannot be bought with real money, and cannot be cashed out or
+transferred &mdash; they are earned by playing, by the daily reward and by watching rewarded videos.
+Settings carries a <em>Remove ads</em> panel that says the feature is not available, as a place to
+start from if you add billing yourself. Adding real purchases means adding a billing package and
+declaring it on both stores.</p>
+
+<h3>Can I change the prices, the rules or the difficulty without writing Dart?</h3>
+
+<p>Mostly yes, in the sense that you are editing values rather than writing logic. The twelve prize
+tables and their entry and prize amounts, the fifteen shop items and their prices, the physics
+feel, the turn length and the robot&rsquo;s three difficulty tiers are each a list or a table of
+constants in one named file. The relevant sections are
+<a href="#economy">Economy &amp; prize tables</a>, <a href="#shop">Equipment shop</a> and
+<a href="#gameplay-settings">Gameplay settings</a>. You will still need to run the project to
+rebuild it.</p>
 
 <h2 id="troubleshooting">Troubleshooting</h2>
 
@@ -2364,10 +2562,41 @@ exact error message and the steps that produce it — that information resolves 
 
 <h2 id="changelog">Changelog</h2>
 
-<p>The full version history ships with the item as <code>CHANGELOG.md</code> and is also <a href="changelog.txt">published here</a>.</p>
+<h3>What&rsquo;s new in 1.1.0 &mdash; 28 October 2026</h3>
+
+<p><strong>Added</strong></p>
+<ul>
+  <li><strong>A player profile.</strong> Players can set the name they are called by and pick a
+    face &mdash; their own initials, or any of forty-eight drawn avatars. Both appear on the board
+    and in the score panels.</li>
+  <li><strong>Thirteen languages:</strong> English, Bangla, Hindi, Arabic, Chinese, Russian,
+    German, Turkish, French, Greek, Spanish, Brazilian Portuguese and Amharic, with a picker in
+    settings and an option to follow the phone. Arabic lays the whole interface out right to left.
+    Numbers are grouped and shaped the way each language writes them. See
+    <a href="#languages">Languages</a> for how to add or drop one.</li>
+  <li><strong>A Licences screen</strong> in settings, listing every open-source package in the
+    build. It reads the licence registry directly, so it cannot fall behind a dependency change.</li>
+  <li><strong>Documentation</strong> on building for web, a FAQ, and the prerequisites you need
+    before starting.</li>
+</ul>
+
+<p><strong>Changed</strong></p>
+<ul>
+  <li><strong>The Android SDK levels are pinned explicitly</strong> in the Gradle build rather than
+    resolving from whichever Flutter SDK is installed, so two machines cannot quietly build this
+    project against two different Android SDKs.</li>
+  <li><strong>The game is easier to score in.</strong> The pocket radius went from 22.5 to 30 and
+    the striker from 20.5 to 26, which roughly doubled how often a well-aimed shot drops.</li>
+  <li><strong>The aim guide also draws the path of the struck coin</strong>, not only the coin it
+    would hit, which is the half that makes a cut shot aimable.</li>
+  <li>The packaging script refuses to build an archive carrying an internal development reference
+    or naming a path the archive does not contain.</li>
+</ul>
+
+<p>Version 1.0.0 was the first release. The complete history, including every entry above in full and everything that went into 1.0.0, ships with the item as <code>CHANGELOG.md</code> and is also <a href="changelog.txt">published here</a>.</p>
 
 <footer>
-  <p>Carrom Circuit documentation &middot; v1.0.0</p>
+  <p>Carrom Circuit documentation &middot; v1.1.0</p>
 </footer>
 
 </main>

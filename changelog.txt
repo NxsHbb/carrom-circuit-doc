@@ -4,7 +4,23 @@ All notable changes to Carrom Circuit are recorded here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 and the project uses [semantic versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.1.0] - 2026-10-28
+
+Everything new since the 1.0.0 release, in one paragraph: the game now has a
+**player profile** — a name you type and a face, either your own initials or
+any of forty-eight drawn avatars — and it speaks **thirteen languages**,
+including Arabic, which is written right to left, with numbers grouped and
+digits shaped the way each language writes them. Settings gained a **Licences** screen listing every
+open-source package the build contains. Underneath that, the Android SDK levels
+are now pinned explicitly instead of resolving from whichever Flutter is
+installed, the packaging script refuses to build an archive carrying an internal
+reference or a path that does not exist, and the buyer documentation gained
+sections on building for web, a FAQ, and the prerequisites you need before you
+start.
+
+The detail below also covers everything up to and including 1.0.0: this file has
+never been split into one section per release, which the 1.0.0 note at the
+bottom records as a tidying job still owed.
 
 ### Changed
 - **The Android SDK levels are pinned explicitly** in
@@ -529,5 +545,7 @@ per upload while nothing in the first two bumps changed what a player sees:
 - `+2` the first build with live ad IDs.
 - `+3` the first build carrying the difficulty changes above.
 
-**The rest of this file is still gathered under `[Unreleased]`** rather than
-split into released versions, which is a tidying job this release did not do.
+**The rest of this file is still gathered under the 1.1.0 heading above**
+rather than split into one section per release, which is a tidying job neither
+release has done. Nothing is missing from it; it is simply not sorted by
+version.
