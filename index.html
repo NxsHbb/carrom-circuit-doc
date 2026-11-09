@@ -450,15 +450,8 @@ reproducible.</p>
 search depends on that: it replays thousands of candidate shots through the same engine, so a
 non-deterministic change would make the AI's choices unrepeatable as well as untestable.</p>
 
-<p>Never run two at once, and never run <code>--check</code> beside a full sweep: a sweep keeps one file
-mutated while the suite runs, so anything else reading the source at that moment sees the mutated copy and
-reports patterns as stale when they are not.</p>
-
 <p>The source is formatted with <code>dart format</code>, so <code>dart format lib test</code> should report
-nothing changed. Run it before committing rather than after, for the reason above.</p>
-<p>Every mutation should be reported as <code>caught</code>. One reported as a gap means the suite would not
-have noticed that rule breaking — useful to run after you change the engine, and a good way to confirm your
-own additions are actually covered.</p>
+nothing changed.</p>
 
 <h2 id="rebranding">Rebranding</h2>
 
@@ -601,24 +594,29 @@ a different starting layout; the colours alternate automatically.</p>
 
 <h3>Board dimensions</h3>
 <p><code>lib/game/config/board_config.dart</code>. The board is modelled in logical units where one unit is
-one millimetre of a real carrom board: a 740 &times; 740 playing surface, 30 pocket radius, 15.5 coin
-radius and 26 striker radius. The Flame layer scales these to fit any screen, so changing them changes
+one millimetre of a real carrom board: a 740 &times; 740 playing surface, 33 pocket radius, 15.5 coin
+radius and 28 striker radius. The Flame layer scales these to fit any screen, so changing them changes
 proportions, not the fit.</p>
 
 <p><strong>The pocket is deliberately larger than a real board’s</strong>, which is about 22.25 units by
-this scale and is where this project started. It was raised to 30 because the game was measured as too hard
-to score in: on a scattered board a <em>perfectly</em> aimed shot dropped only 46.7% of the time at the old
-size, against 66.7% at this one. The gain flattens above this — 27 already reaches 63.3% — so there is
-little left to buy by going further.</p>
+this scale and is where this project started. It was widened because the game measured as too hard to score
+in: on a scattered board a <em>perfectly</em> aimed shot dropped only 46.7% of the time at 22.25, against
+66.7% at 30, and it was widened again by a tenth to the 33 it ships at. Most of what size alone can buy is
+already bought — 27 already reached 63.3% — so going much further mainly costs realism rather
+than buying playability.</p>
 
-<p><strong>The striker is deliberately larger than a real one too</strong> — 26 against about 20.5 by
-this scale — and the two numbers belong together. At 20.5 the 30-unit pocket swallowed the striker about
-four times as often as the original board did (2.7% of shots across a sweep of every spot, angle and
-power, against 0.7%), which is a foul the player did not earn. Widening the striker brings that to 1.3%
-and, pleasingly, costs nothing in scoring: a bigger striker is a bigger hammer and finds the coin it is
-aimed at slightly more often. <strong>It must stay below <code>kPocketRadius</code></strong>; a striker
-too fat for the hole could never be pocketed, and the Section 7.2 striker foul is a rule of the game.
-A sweep in <code>test/physics/shot_feel_test.dart</code> guards both ends of that.</p>
+<p><strong>The striker is deliberately larger than a real one too</strong> — 28 against about 20.5 by
+this scale — and the two numbers belong together, because a wider pocket is also a wider hole for the
+striker to fall into. At 20.5 a 30-unit pocket swallowed the striker about four times as often as the
+original board did (2.7% of shots across a sweep of every spot, angle and power, against 0.7%), which is a
+foul the player did not earn. So the striker is sized to the smallest value that does not make striker fouls
+any more common than the step before it: on the 567-shot sweep in
+<code>test/physics/shot_feel_test.dart</code>, 19 fouls at a 33 pocket with a 26 striker, and 13 at a
+striker of 28 — which is what the narrower pocket gave. It costs nothing in scoring either, because a
+bigger striker is a bigger hammer and finds the coin it is aimed at slightly more often.
+<strong>It must stay below <code>kPocketRadius</code></strong>; a striker too fat for the hole could never
+be pocketed, and the Section 7.2 striker foul is a rule of the game. The same sweep guards both ends of
+that.</p>
 
 <p>Two things move with <code>kPocketRadius</code> besides the capture circle, which is why it is worth
 changing only here. <code>BoardGeometry.hasCushionAt</code> opens a gap of exactly this radius at each end of
@@ -2041,7 +2039,7 @@ has one length. How far the coin actually travels depends on a power the guide h
 <p>Two honest limits, both deliberate. It accounts for <strong>no second coin in the way</strong> — only the
 first contact can be answered without running the engine — and it is about two and a half degrees optimistic,
 because the engine resolves a contact after a sub-step of overlap and so uses a line of centres slightly past
-the exact tangency. That is roughly 13 units of drift over the 300 that get drawn, against a pocket 30 units
+the exact tangency. That is roughly 13 units of drift over the 300 that get drawn, against a pocket 66 units
 across: it points a player at the right pocket and should not be read as finer than that. A test fires the cut
 it predicted and holds the drawn direction to the one the engine actually sends the coin off in.</p>
 
@@ -2595,12 +2593,14 @@ exact error message and the steps that produce it — that information resolves 
   <li><strong>The Android SDK levels are pinned explicitly</strong> in the Gradle build rather than
     resolving from whichever Flutter SDK is installed, so two machines cannot quietly build this
     project against two different Android SDKs.</li>
-  <li><strong>The game is easier to score in.</strong> The pocket radius went from 22.5 to 30 and
-    the striker from 20.5 to 26, which roughly doubled how often a well-aimed shot drops.</li>
+  <li><strong>The game is easier to score in.</strong> The pocket radius went from 22.5 to 33 and
+    the striker from 20.5 to 28, which roughly doubled how often a well-aimed shot drops.</li>
   <li><strong>The aim guide also draws the path of the struck coin</strong>, not only the coin it
-    would hit, which is the half that makes a cut shot aimable.</li>
-  <li>The packaging script refuses to build an archive carrying an internal development reference
-    or naming a path the archive does not contain.</li>
+    would hit, which is the half that makes a cut shot aimable; and the aim line now stops at the
+    coin it would strike rather than running on to the cushion.</li>
+  <li><strong>The robot plays a little less perfectly at every difficulty.</strong> It measured as
+    too strong to be fun, so each tier now aims and strikes about twice as loosely while searching
+    exactly as widely as before.</li>
 </ul>
 
 <p>Version 1.0.0 was the first release. The complete history, including every entry above in full and everything that went into 1.0.0, ships with the item as <code>CHANGELOG.md</code> and is also <a href="changelog.txt">published here</a>.</p>

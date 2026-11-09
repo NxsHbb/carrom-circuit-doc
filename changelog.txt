@@ -13,14 +13,11 @@ including Arabic, which is written right to left, with numbers grouped and
 digits shaped the way each language writes them. Settings gained a **Licences** screen listing every
 open-source package the build contains. Underneath that, the Android SDK levels
 are now pinned explicitly instead of resolving from whichever Flutter is
-installed, the packaging script refuses to build an archive carrying an internal
-reference or a path that does not exist, and the buyer documentation gained
-sections on building for web, a FAQ, and the prerequisites you need before you
-start.
+installed, and the documentation gained sections on building for web, a FAQ, and
+the prerequisites you need before you start.
 
-The detail below also covers everything up to and including 1.0.0: this file has
-never been split into one section per release, which the 1.0.0 note at the
-bottom records as a tidying job still owed.
+The entries below cover the whole history of the item, including the work that
+built 1.0.0.
 
 ### Changed
 - **The Android SDK levels are pinned explicitly** in
@@ -30,18 +27,18 @@ bottom records as a tidying job still owed.
   the project against two different Android SDKs without either saying so. The
   pinned values are what the toolchain already resolved to, so the shipped APK
   is unchanged.
-- **Internal development references removed from the shipped package.** The
-  phase numbering and working-rule references this project uses internally are
-  gone from `lib/`, `test/`, `CHANGELOG.md` and the generated `SPEC.md`. Several
-  were also stale: `ads_service.dart` still said that nothing in the app shows
-  an ad, and four files still promised that real artwork or bundled fonts would
-  arrive in a later release.
+- **Comments throughout `lib/` and `test/` rewritten for a reader of this
+  package.** Several were also stale: `ads_service.dart` still said that nothing
+  in the app shows an ad, and four files still promised that real artwork or
+  bundled fonts were to come.
+- `SPEC.md` rewritten as technical documentation rather than as a design
+  history. Every value in its tables is the value the build uses, the two
+  places it states the sentence count are counted from
+  `lib/l10n/app_en.arb` rather than typed in, and its notes on extending the
+  game are in the tense of a reader who has the finished code.
 - The script that generated the placeholder sound effects no longer ships. The
   ten synthesised sounds are already in `assets/audio/`; replace them by
   dropping your own files in under the same names.
-- The packaging script refuses to build an archive whose text carries an
-  internal reference, or names a path the archive does not contain. Both are
-  asked of every member of the zip rather than of one file.
 
 ### Added
 - An **AI disclosure** section in the item description: development was
@@ -123,10 +120,8 @@ bottom records as a tidying job still owed.
   events are logged per shot for scoring.
 - `PhysicsWorld.simulateUntilRest`, the headless entry point the robot's shot
   search runs on, returning step count and whether the shot settled.
-- A mutation-testing harness that checks the test suite
-  would actually catch a break in the physics engine.
 - Tests covering that the world uses each configured physics constant, closing
-  three gaps the mutation harness found.
+  three gaps that mutation testing of the suite revealed.
 - Canvas-drawn board: walnut frame with grain and a recessed bevel, maple
   surface, four corner pockets, baselines with end circles, centre circles and
   diagonal arrows. Drawn entirely in board units, so it fits any screen.
@@ -291,8 +286,6 @@ bottom records as a tidying job still owed.
   `google_mobile_ads`. Everything above it works through a small
   `FullScreenAd` interface, which is what lets the loading rules be tested with
   no network, no AdMob account and no platform channel.
-- Twelve mutations covering the ad-loading rules, and `test/services` added to
-  the mutation harness's suite.
 - `lib/core/ads/interstitial_cap.dart`: Section 10's two interstitial limits,
   held together — two finished robot matches between ads, and never two ads
   less than three minutes apart. Stored under the `interstitial` key, so
@@ -302,8 +295,6 @@ bottom records as a tidying job still owed.
   match that reaches a result, and shows an ad at a break — leaving a finished
   match, or asking for a rematch. Never during play, never after a local
   two-player game, and never after a match the player abandoned part-way.
-- Seventeen more mutations covering the interstitial caps, and `test/ads`
-  added to the mutation harness's suite.
 - `lib/core/ads/rewarded_allowance.dart`: Section 9.4's rewarded video, worth
   250 coins with five a day. A calendar day, counted by the same function the
   daily reward streak uses.
@@ -315,8 +306,6 @@ bottom records as a tidying job still owed.
   second helping: the cooldown restarts as it does for a free refill.
 - `CoinPanel`, shared by the refill and the video offers so that two panels on
   the same screen cannot drift apart.
-- Twenty-one more mutations covering the video allowance, who may be paid for
-  watching one, and the two panel conditions.
 - Google's User Messaging Platform consent flow in
   `lib/services/consent_service.dart`, which ships inside `google_mobile_ads`
   and needs no extra dependency. Consent is gathered the first time an ad is
@@ -330,7 +319,6 @@ bottom records as a tidying job still owed.
   a control that does nothing.
 - `kConsentTestDeviceIds` and `kConsentDebugGeography`, for seeing the European
   consent form on a device that is not in Europe.
-- Five more mutations covering the consent gate and the settings row.
 
 - Sound: the ten effects of Section 11, played through `flame_audio`. An
   `AudioService` decides whether and how loudly, `BoardSounds` reads the
@@ -342,9 +330,8 @@ bottom records as a tidying job still owed.
 - A **Sound** switch in settings, read on every sound rather than cached.
 - The ten sound effects, synthesised rather than recorded and deterministic so
   regenerating never churns the repository. These are
-  placeholders in the same sense as the launcher icons; replace the files in
-  the final art lands, and nothing in the Dart changes.
-- Twenty-four mutations covering which sound plays, how loud, and how often.
+  placeholders in the same sense as the launcher icons: replace the files and
+  nothing in the Dart changes.
 
 - Haptics: light on a knock, medium on a pocket, heavy on a foul, through
   Flutter's own `HapticFeedback` and so without a new dependency. One buzz per
@@ -356,7 +343,6 @@ bottom records as a tidying job still owed.
 - `BoardSounds` renamed `BoardFeedback`: sound and haptics are read from one
   pass over the physics event logs rather than by two objects counting
   separately.
-- Twenty-nine mutations covering what is felt, how hard and how often.
 - A pocketed coin shrinks and fades into the hole instead of vanishing on the
   frame it was captured.
 - Score popups in Scramble: the points a shot was worth, rising out of the
@@ -396,25 +382,15 @@ bottom records as a tidying job still owed.
   about the board or the navigator. No behaviour change, and every existing
   widget test passed untouched.
 - Two redundant settle-once guards removed from the new `MatchStakes`:
-  `PrizePurse` already owns that rule, which turned out to have had no mutation
-  covering it until now.
-- The mutation harness runs only the tests that can catch each mutation, which
-  takes a full sweep of 243 mutations from **1h52m to 19m46s**. A survivor is
-  re-run against the whole suite before it is called a gap, so too narrow a
-  mapping reports itself rather than hiding a rule nobody tests.
-- A mutation that fails to compile is reported as `BROKEN` rather than
-  `caught`: the test command fails either way, and the old reading credited a
-  syntax error with defending a rule.
+  `PrizePurse` already owns that rule, and a test for it was added where there
+  had been none.
 
 ### Changed
 - `CarromArenaApp` renamed `CarromCircuitApp`, the last identifier left over
-  from the 2026-10-05 rename.
+  from the rename.
 - The whole of `lib/` and `test/` formatted with `dart format`, which had never
   been run over the project. `dart format lib test` now reports nothing changed,
   and it is part of the verification checklist.
-- The mutation harness gained `--check`, which verifies that every mutation's
-  pattern still matches its source; a full run performs the same check first and
-  refuses to start when a pattern has gone stale.
 
 ### Changed
 - Renamed throughout to stand clear of the names already shipping in this
@@ -516,36 +492,19 @@ bottom records as a tidying job still owed.
   `key.properties` from the very first release, while nothing read it.
 
 ### Added
-- `store/privacy-policy.html`: the published privacy policy. One self-contained
-  file that fetches no stylesheet, font or script, so it renders anywhere.
-- `store/listing.md`: app name, short and full descriptions, the graphics
-  checklist, content rating notes and the Play Data safety answers.
-- `store/screenshots/`: six screens captured from the signed release build.
-- The Play Store feature graphic and its generator. The board
-  is painted by the launcher icon's own routine and the wordmark is matted out
-  of a real screenshot, so neither can drift from the app.
-- `test/app/store_listing_test.dart`: the three Play character limits, the
-  lengths the listing claims for itself, that the policy pulls in nothing
-  external, that it is right about in-app purchases, and that the settings row
-  it tells players to open exists in the app under that exact name.
-- A buyer-facing section on writing their own privacy policy, including the
-  permissions the ads SDK contributes and how to confirm them for their build.
-
-### Changed
-- `store/` is excluded from the CodeCanyon archive, like `designs/`. It is the
-  owner's store material and the policy carries the owner's contact address.
+- A documentation section on writing your own privacy policy, including the
+  permissions the ads SDK contributes and how to confirm them for your own
+  build.
 
 ## [1.0.0]
 
-First public release. Note that the version *name* has stayed `1.0.0` across
-three Android version codes, because Play requires a strictly increasing code
-per upload while nothing in the first two bumps changed what a player sees:
+First public release.
 
-- `+1` submitted 2026-10-12, carrying Google's **test** ad unit IDs.
-- `+2` the first build with live ad IDs.
-- `+3` the first build carrying the difficulty changes above.
+Note that the version *name* and the Android version code move independently:
+Play requires a strictly increasing code on every upload, so a build that
+changes nothing a player sees still needs a new one. `pubspec.yaml` carries
+both, as `version: 1.1.0+4`.
 
-**The rest of this file is still gathered under the 1.1.0 heading above**
-rather than split into one section per release, which is a tidying job neither
-release has done. Nothing is missing from it; it is simply not sorted by
-version.
+The entries for the work that built this release are gathered under the 1.1.0
+heading above, grouped by the area they changed rather than split by
+pre-release milestone.
